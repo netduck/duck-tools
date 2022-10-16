@@ -2,11 +2,12 @@ import argparse
 import re
 
 def get_args():
-    parser = argparse.ArgumentParser(description="WPA/2/3 Authentication Attack Tool")
+    parser = argparse.ArgumentParser(description="WPA1/2 Authentication Attack Tool")
     parser.add_argument('-i', '--interface', dest='iface', default="", type=str)
     parser.add_argument('-c', '--channel', dest='ch', default=0, type=int)
     parser.add_argument('-a', '--accesspoint', dest='ap', default="", type=str)
     parser.add_argument('-s', '--station', dest='sta', default="", type=str)
+    parser.add_argument('-v', '--ssid', dest='ssid', default="", type=str)
     args = parser.parse_args()
 
     if not valid_AP(args.ap):
@@ -22,8 +23,17 @@ def get_args():
     if not valid_Ch(args.ch):
         print("[!] Invalid Channel : [%s]" % (args.ch))
         exit(-1)
+    if not valid_SSID(args.ssid):
+        print("[!] Invalid SSID : [%s]" % (args.ssid))
+        exit(-1)
 
     return args
+
+def valid_SSID(ssid):
+    if ssid=="":
+        return False
+    else:
+        return True
 
 def valid_MAC(mac):
     if re.search(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$", mac):
@@ -60,4 +70,4 @@ def get_ifaces():
         ifaces.append(n.rstrip(":"))
     return ifaces
 
-get_args()
+args = get_args()
