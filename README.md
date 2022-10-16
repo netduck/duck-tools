@@ -12,20 +12,20 @@
 
 <h3>서준원</h3>
 
-![Junan's GitHub stats](https://github-readme-stats.vercel.app/api?username=junan-98&theme=dark&show_icons=true)
+![Junan's GitHub stats](https://github-readme-stats.vercel.app/api?username=junan-98&show_icons=true&hide=contribs,prs&cache_seconds=86400&theme=aura)
 <p>Vulnerability Analysis</p>
 
 <h3>김민준</h3>
 
-![Aiden's GitHub stats](https://github-readme-stats.vercel.app/api?username=AidenKim-com&theme=dark&show_icons=true)
+![Aiden's GitHub stats](https://github-readme-stats.vercel.app/api?username=AidenKim-com&show_icons=true&hide=contribs,prs&cache_seconds=86400&theme=aura)
 <p>Vulnerability Analysis</p>
 
 <h3>김호</h3>
 
-![21HoKim's GitHub stats](https://github-readme-stats.vercel.app/api?username=21HoKim&theme=dark&show_icons=true)
+![21HoKim's GitHub stats](https://github-readme-stats.vercel.app/api?username=21HoKim&show_icons=true&hide=contribs,prs&cache_seconds=86400&theme=aura)
 <p>Security Production Development</p>
 
 <h3>안두혁</h3>
 
-![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=myharu01&theme=dark&show_icons=true)
+![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=myharu01&show_icons=true&hide=contribs,prs&cache_seconds=86400&theme=aura)
 <p>Security Production Development</p>
