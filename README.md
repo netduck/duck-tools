@@ -12,6 +12,9 @@
 
 <h3>서준원</h3>
 
+![Python](https://img.shields.io/badge/python-444444?style=for-the-badge&logo=python)
+![React](https://img.shields.io/badge/Vulnerability%20Analysis-444444?style=for-the-badge&logo=redhat&logoColor=red)
+
 ![Junan's GitHub stats](https://github-readme-stats.vercel.app/api?username=junan-98&show_icons=true&hide=contribs,prs&cache_seconds=86400&theme=aura)
 <p>Vulnerability Analysis</p>
 
