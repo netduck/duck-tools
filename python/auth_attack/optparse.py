@@ -83,23 +83,33 @@ class PARSER:
                         exit(-1)
 
 
-def opt_parse():
-        parser = argparse.ArgumentParser(add_help=False)
+def get_options():
+    parser = argparse.ArgumentParser(description="WPA/2/3 Authentication Attack Tool")
+    parser.add_argument('-i', '--interface', dest='interface', default="", type=str)
+    parser.add_argument('-c', '--channel', dest='channel', default=0, type=int)
+    parser.add_argument('-a', '--accesspoint', dest='ap', default="", type=str)
+    parser.add_argument('-s', '--station', dest='sta', default="", type=str)
+    parser.add_argument('-v', '--ssid', dest='ssid', default="", type=str)
+    parser.add_argument('-d', '--casting', dest='cast', default="broadcast", type=str)
+    parser.add_argument('--aggressive', dest='aggressive', default=False, type=bool)
+    return parser.parse_args()
 
-        parser.add_argument('-h', '--help', dest='help', default=False, action="store_true")
+def validMAC(mac):
+    if re.search(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$", mac_address):
+        return True
+    else:
+        return False
 
-        parser.add_argument('-i', '--interface', dest='interface', default="", type=str)
-        parser.add_argument('-c', '--channel', dest='channel', default=0, type=int)
-        parser.add_argument('-a', '--accesspoint', dest='ap', default="", type=str)
-        parser.add_argument('-s', '--station', dest='sta', default="", type=str)
-        parser.add_argument('-v', '--ssid', dest='ssid', default="", type=str)
+def validCh(ch):
+    ch_spectrum = list(range(1,164))
+    if ch in ch_spectrum:
+        return True
+    else:
+        return False
 
-        parser.add_argument('-d', '--casting', dest='cast', default="broadcast", type=str)
+def validAP(mac):
+    return validMAC(mac)
 
-        parser.add_argument('--aggressive', dest='aggressive', default=False, type=bool)
+def validSTA():
+    return validMAC(mac)
 
-        options = parser.parse_args()
-        global parser = PARSER(options)
-        #print(f"interface: {parser.interface}\nChannel: {parser.channel}\nAP: {parser.ap}\nSTA: {parser.sta}\ncasting: {parser.casting}")
-
-        csa_attack(parser)

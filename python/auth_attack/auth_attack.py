@@ -1,4 +1,5 @@
 from scapy.all import *
+import optparse
  
 recipients_mac_adress = 'B6:70:64:8A:C0:FC'
 your_mac_adress = 'b8:81:98:6e:14:5a'
@@ -28,5 +29,6 @@ def auth_attack():
         i=i+1
 
 if __name__=='__main__':
-    opn_auth_attack()
+    optparse.get_options()
+    auth_attack()
 
