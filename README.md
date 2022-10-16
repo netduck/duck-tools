@@ -21,6 +21,10 @@
   ![C/C++](https://img.shields.io/badge/c/c++-444444?style=for-the-badge&logo=cplusplus&logoColor=00599C)
   ![vscode](https://img.shields.io/badge/Security%20Production%20Development-444444?style=for-the-badge&logo=visualstudiocode&logoColor=007ACC)
 
+  
+  ![Alg0r1thmm 's GitHub stats](https://github-readme-stats.vercel.app/api?username=alg0r1thmm&show_icons=true&hide=contribs,prs&cache_seconds=86400&theme=aura)
+
+  
   <h3>서준원</h3>
 
   ![Python](https://img.shields.io/badge/python-444444?style=for-the-badge&logo=python)
