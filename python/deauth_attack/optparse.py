@@ -15,10 +15,10 @@ def get_args():
     parser.add_argument('-v', '--ssid', dest='ssid', default="", required=True, type=str)
     args = parser.parse_args()
 
-    if not valid_Dest(args.ap):
+    if not valid_Dest(args.dest):
         print("[!] Invalid Destination MAC : [%s]" % (args.dest))
         exit(-1)
-    if not valid_STA(args.sta):
+    if not valid_Src(args.src):
         print("[!] Invalid Source MAC : [%s]" % (args.src))
         exit(-1)
     if not valid_Iface(args.iface):

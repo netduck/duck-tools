@@ -37,7 +37,11 @@ def auth_attack():
     for i in range(0,30):
         sendp(auth_frame, iface=iface)
         sendp(assoc_frame, iface=iface)
-        print("\x1b[36m->\x1b[0m",end="",flush=True)
+        printProgressBar()
+
+def printProgressBar():
+    print("\x1b[36m->\x1b[0m",end="",flush=True)
+    
 
 def channel_switch(iface,ch):
     print(WARN_STR+" Channel Switching : Ch."+str(ch))

