@@ -3,23 +3,23 @@ import re
 
 def get_args():
     parser = argparse.ArgumentParser(
-            prog="auth_attack",
-            usage="python3 %(prog)s -i mon0 -c 149 -a AA:AA:AA:AA:AA:AA -s BB:BB:BB:BB:BB:BB -v 41D3N",
-            description="WPA1/2 Authentication Attack Tool",
+            prog="deauth_attack",
+            usage="python3 %(prog)s -i mon0 -c 149 -s AA:AA:AA:AA:AA:AA -d BB:BB:BB:BB:BB:BB -v 41D3N",
+            description="WPA1/2 Deauthentication Attack Tool",
             allow_abbrev=False
             )
     parser.add_argument('-i', '--interface', dest='iface', default="", required=True, type=str)
     parser.add_argument('-c', '--channel', dest='ch', default=0, required=True, type=int)
-    parser.add_argument('-a', '--accesspoint', dest='ap', default="", required=True,  type=str)
-    parser.add_argument('-s', '--station', dest='sta', default="", required=True, type=str)
+    parser.add_argument('-d', '--dest', dest='dest', default="", required=True, type=str)
+    parser.add_argument('-s', '--src', dest='src', default="", required=True, type=str)
     parser.add_argument('-v', '--ssid', dest='ssid', default="", required=True, type=str)
     args = parser.parse_args()
 
-    if not valid_AP(args.ap):
-        print("[!] Invalid Access Point MAC : [%s]" % (args.ap))
+    if not valid_Dest(args.ap):
+        print("[!] Invalid Destination MAC : [%s]" % (args.dest))
         exit(-1)
     if not valid_STA(args.sta):
-        print("[!] Invalid Station MAC : [%s]" % (args.sta))
+        print("[!] Invalid Source MAC : [%s]" % (args.src))
         exit(-1)
     if not valid_Iface(args.iface):
         print("[!] Invalid Interface MAC : [%s]" % (args.iface))
@@ -60,10 +60,10 @@ def valid_Iface(iface):
     else:
         return False
 
-def valid_AP(mac):
+def valid_Dest(mac):
     return valid_MAC(mac)
 
-def valid_STA(mac):
+def valid_Src(mac):
     return valid_MAC(mac)
 
 # Get Network Interfaces

