@@ -2,12 +2,17 @@ import argparse
 import re
 
 def get_args():
-    parser = argparse.ArgumentParser(description="WPA1/2 Authentication Attack Tool")
-    parser.add_argument('-i', '--interface', dest='iface', default="", type=str)
-    parser.add_argument('-c', '--channel', dest='ch', default=0, type=int)
-    parser.add_argument('-a', '--accesspoint', dest='ap', default="", type=str)
-    parser.add_argument('-s', '--station', dest='sta', default="", type=str)
-    parser.add_argument('-v', '--ssid', dest='ssid', default="", type=str)
+    parser = argparse.ArgumentParser(
+            prog="auth_attack",
+            usage="%(prog)s -i mon0 -c 149 -a AA:AA:AA:AA:AA:AA -s BB:BB:BB:BB:BB:BB -v 41D3N",
+            description="WPA1/2 Authentication Attack Tool",
+            allow_abbrev=False
+            )
+    parser.add_argument('-i', '--interface', dest='iface', default="", required=True, type=str)
+    parser.add_argument('-c', '--channel', dest='ch', default=0, required=True, type=int)
+    parser.add_argument('-a', '--accesspoint', dest='ap', default="", required=True,  type=str)
+    parser.add_argument('-s', '--station', dest='sta', default="", required=True, type=str)
+    parser.add_argument('-v', '--ssid', dest='ssid', default="", required=True, type=str)
     args = parser.parse_args()
 
     if not valid_AP(args.ap):
