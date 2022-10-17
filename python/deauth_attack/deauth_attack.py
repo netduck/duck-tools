@@ -40,7 +40,7 @@ def channel_switch(iface,ch):
 
 def show_info():
     print(SYSTEM_STR+" Information")
-    print("\t"+INFO_STR+" Destination MAC Address (BSSID) : %s" % dest)
+    print("\t"+INFO_STR+" Destination MAC Address : %s" % dest)
     print("\t"+INFO_STR+" Source MAC Address : %s" % src)
     print("\t"+INFO_STR+" SSID Information : %s" % ssid)
     print("\t"+INFO_STR+" Channel : Ch.%s" % ch)
