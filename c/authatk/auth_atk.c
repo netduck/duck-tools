@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
     assoreq_p.AssReqBd.tag.ssid = SSID;
 
     while(1){
-        pcap_sendpacket(pcap, (char *)&auth_p, sizeof(packet) - 2);
-        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(packet) - 2);
+        pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
+        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) - 2);
     }
 
     //패킷 초기화 진행
