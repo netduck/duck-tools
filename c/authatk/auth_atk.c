@@ -37,7 +37,7 @@ struct Tag{
     uint8_t tag_number;
     uint8_t tag_len;
     u_char ssid;
-}
+};
 
 struct Authentication
 {
@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
     assoreq_p.AssReqBd.tag.tag_number = 0x00;
     assoreq_p.AssReqBd.tag.tag_len = len(SSID);
     assoreq_p.AssReqBd.tag.ssid = SSID;
+
     while(1){
         pcap_sendpacket(pcap, (char *)&auth_p, sizeof(packet) - 2)
         pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(packet) - 2)
