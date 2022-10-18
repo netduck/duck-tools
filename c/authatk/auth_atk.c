@@ -30,7 +30,7 @@ struct AuthenticationBd{
 struct AssociationReqBd{
     uint16_t capabil_info;
     uint16_t status_code;
-    struct Tag_st tag;
+    struct Tag_st tagged;
 };
 
 struct Tag_st{
@@ -144,9 +144,9 @@ int main(int argc, char *argv[])
     assoreq_p.Dot11Bd.FSnumber = 0x0000;
     assoreq_p.AssReqBd.capabil_info = 0xC800;
     assoreq_p.AssReqBd.status_code = 0x0001;
-    assoreq_p.AssReqBd.tag.tag_number = 0x00;
-    assoreq_p.AssReqBd.tag.tag_len = len(SSID);
-    assoreq_p.AssReqBd.tag.ssid = SSID;
+    assoreq_p.AssReqBd.tagged.tag_number = 0x00;
+    assoreq_p.AssReqBd.tagged.tag_len = len(SSID);
+    assoreq_p.AssReqBd.tagged.ssid = SSID;
 
     while(1){
         pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
