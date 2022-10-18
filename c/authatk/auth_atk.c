@@ -30,7 +30,7 @@ struct AuthenticationBd{
 struct AssociationReqBd{
     uint16_t capabil_info;
     uint16_t status_code;
-    struct tag;
+    struct Tag tag;
 };
 
 struct Tag{
