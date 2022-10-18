@@ -34,8 +34,8 @@ struct DeAuthentication
 
 void usage()
 {
-    printf("syntax: DeAuthATK <interface> <AP mac> <STA mac> <Src add (AP or STA)>\n");
-    printf("sample: DeAuthATK wlan0 11:22:33:44:55:66 ff:ff:ff:ff:ff:ff AP\n");
+    printf("syntax: deauth_attack <interface> <AP mac> <STA mac> <Src add (AP or STA)>\n");
+    printf("sample: deauth_attack wlan0 11:22:33:44:55:66 ff:ff:ff:ff:ff:ff AP\n");
 }
 
 typedef struct
