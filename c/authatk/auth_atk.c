@@ -30,10 +30,10 @@ struct AuthenticationBd{
 struct AssociationReqBd{
     uint16_t capabil_info;
     uint16_t status_code;
-    struct Tag tag;
+    struct Tag_st tag;
 };
 
-struct Tag{
+struct Tag_st{
     uint8_t tag_number;
     uint8_t tag_len;
     u_char ssid;
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
     assoreq_p.AssReqBd.tag.ssid = SSID;
 
     while(1){
-        pcap_sendpacket(pcap, (char *)&auth_p, sizeof(packet) - 2)
-        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(packet) - 2)
+        pcap_sendpacket(pcap, (char *)&auth_p, sizeof(packet) - 2);
+        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(packet) - 2);
     }
 
     //패킷 초기화 진행
