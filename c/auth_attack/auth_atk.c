@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     assoreq_p.AssReqBd.tag_number = 0x00;
     assoreq_p.AssReqBd.tag_len = strlen(SSID);
 //    assoreq_p.AssReqBd.ssid = *SSID;
-    memcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
+    strcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
 //    memcpy(assoreq_p.AssReqBd.ssid,*SSID,strlen(SSID));
     printf("%s\n",assoreq_p.AssReqBd.ssid);
 
