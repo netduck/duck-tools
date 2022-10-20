@@ -65,14 +65,14 @@ def make_beacon_csa(parser, elt, dot11):
 	dot11_beacon = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=dot11.addr3, addr3=dot11.addr3)
 	beacon = Dot11Beacon(cap=0o411)
 	frame = RadioTap()/dot11_beacon/beacon
-	csa = Dot11Elt(ID=0x25,len=3,info=bytes([0,253,1]))
+	csa = Dot11Elt(ID=0x25,len=3,info=bytes([0,100,1]))
 	flag = False
 
 	while elt != None:
 		if elt.ID > 37 and flag == False:
 			flag = True
 			frame = frame/csa
-		information_element = Dot11Elt(ID=elt.ID, len=elt.len, info=elt.info)
+		information_element = Dot11Elt(ID=elt.ID, len=len(elt.info), info=elt.info)
 		frame = frame/information_element
 		elt = elt.payload.getlayer(Dot11Elt)
 	csa_packets.append(frame)
