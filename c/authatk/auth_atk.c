@@ -32,7 +32,7 @@ struct AssociationReqBd{
     uint16_t status_code;
     uint8_t tag_number;
     uint8_t tag_len;
-    u_char ssid;
+    unsigned char ssid[];
 };
 
 struct Authentication
@@ -94,8 +94,8 @@ void Mac_(const char *arr, u_char mac_addr[6])
 int main(int argc, char *argv[])
 {
 
-    if (!parse(&param, argc, argv))
-        return -1;
+//    if (!parse(&param, argc, argv))
+//        return -1;
 
     unsigned char *Interface = argv[1];
     unsigned char *AP_MAC = argv[2];
@@ -104,17 +104,17 @@ int main(int argc, char *argv[])
 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
-    if (pcap == NULL)
-    {
-        fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
-        return -1;
-    }
+    //if (pcap == NULL)
+    //{
+    //    fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
+    //    return -1;
+    //}
 
     //auth 패킷 초기화
     struct Authentication auth_p;
     auth_p.rad.version = 0x00;
     auth_p.rad.pad = 0x00;
-    auth_p.rad.len = 0x0080;
+    auth_p.rad.len = 0x0008;
     auth_p.rad.present = 0x00;
     auth_p.Dot11Bd.FcF = 0x00B0;
     auth_p.Dot11Bd.Dur = 0x0000;
@@ -130,19 +130,22 @@ int main(int argc, char *argv[])
     struct AssociationReq assoreq_p;
     assoreq_p.rad.version = 0x00;
     assoreq_p.rad.pad = 0x00;
-    assoreq_p.rad.len = 0x0080;
+    assoreq_p.rad.len = 0x0008;
     assoreq_p.rad.present = 0x00;
-    assoreq_p.Dot11Bd.FcF = 0x00B0;
+    assoreq_p.Dot11Bd.FcF = 0x0000;
     assoreq_p.Dot11Bd.Dur = 0x0000;
     Mac_(AP_MAC, assoreq_p.Dot11Bd.APMac);
     Mac_(STA_MAC, assoreq_p.Dot11Bd.STAMac);
     Mac_(AP_MAC, assoreq_p.Dot11Bd.BSSID);
     assoreq_p.Dot11Bd.FSnumber = 0x0000;
-    assoreq_p.AssReqBd.capabil_info = 0xC800;
-    assoreq_p.AssReqBd.status_code = 0x0001;
+    assoreq_p.AssReqBd.capabil_info = 0x0000;
+    assoreq_p.AssReqBd.status_code = 0x00C8;
     assoreq_p.AssReqBd.tag_number = 0x00;
-    assoreq_p.AssReqBd.tag_len = len(SSID);
-    assoreq_p.AssReqBd.ssid = SSID;
+    assoreq_p.AssReqBd.tag_len = strlen(SSID);
+//    assoreq_p.AssReqBd.ssid = *SSID;
+    memcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
+//    memcpy(assoreq_p.AssReqBd.ssid,*SSID,strlen(SSID));
+    printf("%s\n",assoreq_p.AssReqBd.ssid);
 
     while(1){
         pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
