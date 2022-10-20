@@ -51,7 +51,7 @@ struct AssociationReq
 
 void usage()
 {
-    printf("syntax: AuthATK <interface> <AP mac> <STA mac>\n");
+    printf("syntax: AuthATK <interface> <AP mac> <STA mac> <SSID>\n");
     printf("sample: AuthATK wlan0 11:22:33:44:55:66 ff:ff:ff:ff:ff:ff\n");
 }
 
