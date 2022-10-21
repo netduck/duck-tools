@@ -42,7 +42,7 @@ struct Authentication
     struct Radio rad;
     struct Dot11Bd Dot11Bd;
     struct AuthenticationBd AuthBd;
-};
+} Authentication;
 
 struct AssociationReq
 {
