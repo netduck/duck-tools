@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 struct Radio
 {
@@ -95,13 +96,16 @@ void Mac_(const char *arr, u_char mac_addr[6])
 int main(int argc, char *argv[])
 {
     int time;
+    char c;
     while((c = getopt(argc,argv,"t:")) != -1){
         switch(c){
             case 't':
-                time = optarg;
+                time = atoi(optarg);
+		printf("%d\n\n",time);
                 break;
         }
     }
+    
 //    if (!parse(&param, argc, argv))
 //        return -1;
 
@@ -112,11 +116,11 @@ int main(int argc, char *argv[])
 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
-    //if (pcap == NULL)
-    //{
-    //    fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
-    //    return -1;
-    //}
+    if (pcap == NULL)
+    {
+        fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
+        return -1;
+    }
 
     //auth 패킷 초기화
     struct Authentication auth_p;
@@ -151,13 +155,14 @@ int main(int argc, char *argv[])
     assoreq_p.AssReqBd.tag_number = 0x00;
     assoreq_p.AssReqBd.tag_len = strlen(SSID);
     // assoreq_p.AssReqBd.ssid = *SSID;
-    strcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
-//    memcpy(assoreq_p.AssReqBd.ssid,*SSID,strlen(SSID));
-    printf("%s\n",assoreq_p.AssReqBd.ssid);
+    strcpy(assoreq_p.AssReqBd.ssid,SSID);
+    //memcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
+    //printf("%s\n",assoreq_p.AssReqBd.ssid);
 
     while(1){
+
         pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
-        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) - 2);
+        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) + strlen(SSID) - 2);
     }
 
     //패킷 초기화 진행
