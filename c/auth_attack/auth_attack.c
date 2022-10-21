@@ -161,93 +161,12 @@ int main(int argc, char *argv[])
     //auth 패킷 초기화
     struct Authentication auth_p;
     set_auth_p(&auth_p,AP_MAC,STA_MAC);
-
-    // auth_p.rad.version = 0x00;
-    // auth_p.rad.pad = 0x00;
-    // auth_p.rad.len = 0x0008;
-    // auth_p.rad.present = 0x00;
-    // auth_p.Dot11Bd.FcF = 0x00B0;
-    // auth_p.Dot11Bd.Dur = 0x0000;
-    // Mac_(AP_MAC, auth_p.Dot11Bd.APMac);
-    // Mac_(STA_MAC, auth_p.Dot11Bd.STAMac);
-    // Mac_(AP_MAC, auth_p.Dot11Bd.BSSID);
-    // auth_p.Dot11Bd.FSnumber = 0x0000;
-    // auth_p.AuthBd.auth_Algo = 0x0000;
-    // auth_p.AuthBd.auth_seq = 0x0001;
-    // auth_p.AuthBd.status_code = 0x0000;
-
-    //association 패킷 초기화
     struct AssociationReq assoreq_p;
     set_assoreq_p(&assoreq_p,AP_MAC,STA_MAC,SSID);
-    // assoreq_p.rad.version = 0x00;
-    // assoreq_p.rad.pad = 0x00;
-    // assoreq_p.rad.len = 0x0008;
-    // assoreq_p.rad.present = 0x00;
-    // assoreq_p.Dot11Bd.FcF = 0x0000;
-    // assoreq_p.Dot11Bd.Dur = 0x0000;
-    // Mac_(AP_MAC, assoreq_p.Dot11Bd.APMac);
-    // Mac_(STA_MAC, assoreq_p.Dot11Bd.STAMac);
-    // Mac_(AP_MAC, assoreq_p.Dot11Bd.BSSID);
-    // assoreq_p.Dot11Bd.FSnumber = 0x0000;
-    // assoreq_p.AssReqBd.capabil_info = 0x0000;
-    // assoreq_p.AssReqBd.status_code = 0x00C8;
-    // assoreq_p.AssReqBd.tag_number = 0x00;
-    // assoreq_p.AssReqBd.tag_len = strlen(SSID);
-    // assoreq_p.AssReqBd.ssid = *SSID;
-    // strcpy(assoreq_p.AssReqBd.ssid,SSID);
-    //memcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
-    //printf("%s\n",assoreq_p.AssReqBd.ssid);
 
     while(1){
-
         pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
         pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) + strlen(SSID) - 2);
     }
 
-    //패킷 초기화 진행
-    // struct Authentication packet;
-    // packet.rad.len = 0x0008;
-    // packet.AuthHd.FcF = 0x00B0; // 0xB000
-    // packet.AuthHd.Dur = 0x0;
-    // packet.AuthHd.FSnumber = 0x0;
-    // Mac_(AP_MAC, packet.AuthHd.BSSID);
-    // {
-    //     Mac_(AP_MAC, packet.AuthHd.SoMac);
-    //     Mac_(STA_MAC, packet.AuthHd.DeMac);
-    //     if (pcap_sendpacket(pcap, (char *)&packet, sizeof(packet) - 2) != 0)
-    //     {
-    //         fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
-    //         return -1;
-    //     }
-    // }
-    // {
-    //     Mac_(AP_MAC, packet.AuthHd.DeMac);
-    //     Mac_(STA_MAC, packet.AuthHd.SoMac);
-    //     if (pcap_sendpacket(pcap, (char *)&packet, sizeof(packet) - 2) != 0)
-    //     {
-    //         fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
-    //         return -1;
-    //     }
-    // }
-    // packet.AuthHd.FcF = 0x0000; // 0x0000
-    // {
-    //     Mac_(AP_MAC, packet.AuthHd.DeMac);
-    //     Mac_(STA_MAC, packet.AuthHd.SoMac);
-    //     if (pcap_sendpacket(pcap, (char *)&packet, sizeof(packet) - 2) != 0)
-    //     {
-    //         fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
-    //         return -1;
-    //     }
-    // }
-    // packet.AuthHd.FcF = 0x0010; // 0x0000
-    // {
-    //     Mac_(AP_MAC, packet.AuthHd.SoMac);
-    //     Mac_(STA_MAC, packet.AuthHd.DeMac);
-    //     if (pcap_sendpacket(pcap, (char *)&packet, sizeof(packet) - 2) != 0)
-    //     {
-    //         fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
-    //         return -1;
-    //     }
-    // }
-    // pcap_close(pcap);
 }
