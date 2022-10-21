@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
         {
         case 't':
             time = atoi(optarg);
-            printf("%d\n\n", time);
             break;
         }
     }
