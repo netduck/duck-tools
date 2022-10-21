@@ -13,7 +13,7 @@ struct Radio
     uint32_t present; /* fields present */
 };
 
-void radio_init(struct Radio* r){
+void radio_init(struct Radio* rad){
     rad->version = 0x00;
     rad->pad = 0x00;
     rad->len = 0x0008;
