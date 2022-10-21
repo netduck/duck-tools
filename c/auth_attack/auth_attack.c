@@ -93,9 +93,13 @@ void Mac_(const char *arr, u_char mac_addr[6])
     }
 }
 
+void set_auth_p(){
+
+}
+
 int main(int argc, char *argv[])
 {
-    int time;
+    int time=0;
     char c;
     while((c = getopt(argc,argv,"t:")) != -1){
         switch(c){
@@ -126,6 +130,9 @@ int main(int argc, char *argv[])
 
     //auth 패킷 초기화
     struct Authentication auth_p;
+    printf("%p",&auth_p);
+    set_auth_p(*auth_p);
+
     auth_p.rad.version = 0x00;
     auth_p.rad.pad = 0x00;
     auth_p.rad.len = 0x0008;
