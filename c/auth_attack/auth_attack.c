@@ -93,7 +93,7 @@ void Mac_(const char *arr, u_char mac_addr[6])
     }
 }
 
-void set_auth_p(struct Authentication *auth_p,unsigned char AP_MAC,unsigned char STA_MAC){
+void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned char *STA_MAC){
     auth_p->rad.version = 0x00;
     auth_p->rad.pad = 0x00;
     auth_p->rad.len = 0x0008;
