@@ -1,7 +1,7 @@
-all: auth_atk
+all: auth_attack
 
-auth_atk: auth_atk.c
-		gcc -o auth_atk auth_atk.c -lpcap
+auth_attack: auth_attack.c
+		gcc -o auth_attack auth_attack.c -lpcap
 
 clean:
-		rm -f auth_atk *.o
+		rm -f auth_attack *.o
