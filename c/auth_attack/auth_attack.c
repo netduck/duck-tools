@@ -150,10 +150,10 @@ int main(int argc, char *argv[])
     }
     if (time != 0)
     {
-        unsigned char *Interface = argv[1];
-        unsigned char *AP_MAC = argv[2];
-        unsigned char *STA_MAC = argv[3];
-        unsigned char *SSID = argv[4];
+        unsigned char *Interface = argv[3];
+        unsigned char *AP_MAC = argv[4];
+        unsigned char *STA_MAC = argv[5];
+        unsigned char *SSID = argv[6];
 
         char errbuf[PCAP_ERRBUF_SIZE];
         pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
