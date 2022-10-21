@@ -101,7 +101,7 @@ void Mac_(const char *arr, u_char mac_addr[6])
 }
 
 void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned char *STA_MAC){
-    radio_init(&(auth_p->rad))
+    radio_init(&(auth_p->rad));
     auth_p->Dot11Bd.FcF = 0x00B0;
     auth_p->Dot11Bd.Dur = 0x0000;
     Mac_(AP_MAC, auth_p->Dot11Bd.APMac);
