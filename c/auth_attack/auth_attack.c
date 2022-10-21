@@ -114,10 +114,7 @@ void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned cha
 }
 
 void set_assoreq_p(struct AssociationReq *assoreq_p,unsigned char *AP_MAC,unsigned char *STA_MAC,unsigned char *SSID){
-    assoreq_p->rad.version = 0x00;
-    assoreq_p->rad.pad = 0x00;
-    assoreq_p->rad.len = 0x0008;
-    assoreq_p->rad.present = 0x00;
+    radio_init(&(assoreq_p->rad));
     assoreq_p->Dot11Bd.FcF = 0x0000;
     assoreq_p->Dot11Bd.Dur = 0x0000;
     Mac_(AP_MAC, assoreq_p->Dot11Bd.APMac);
