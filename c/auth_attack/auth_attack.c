@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     //auth 패킷 초기화
     struct Authentication auth_p;
     printf("%p",&auth_p);
-    set_auth_p(*auth_p);
+    // set_auth_p(*auth_p);
 
     auth_p.rad.version = 0x00;
     auth_p.rad.pad = 0x00;
