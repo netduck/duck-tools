@@ -106,13 +106,13 @@ int main(int argc, char *argv[])
         }
     }
     
-//    if (!parse(&param, argc, argv))
+//    if (!parse(&param, argc, optind))
 //        return -1;
 
-    unsigned char *Interface = argv[1];
-    unsigned char *AP_MAC = argv[2];
-    unsigned char *STA_MAC = argv[3];
-    unsigned char *SSID = argv[4];
+    unsigned char *Interface = optind[1];
+    unsigned char *AP_MAC = optind[2];
+    unsigned char *STA_MAC = optind[3];
+    unsigned char *SSID = optind[4];
 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
