@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 struct Radio
 {
@@ -93,7 +94,14 @@ void Mac_(const char *arr, u_char mac_addr[6])
 
 int main(int argc, char *argv[])
 {
-
+    int time;
+    while((c = getopt(argc,argv,"t:")) != -1){
+        switch(c){
+            case 't':
+                time = optarg;
+                break;
+        }
+    }
 //    if (!parse(&param, argc, argv))
 //        return -1;
 
@@ -142,7 +150,7 @@ int main(int argc, char *argv[])
     assoreq_p.AssReqBd.status_code = 0x00C8;
     assoreq_p.AssReqBd.tag_number = 0x00;
     assoreq_p.AssReqBd.tag_len = strlen(SSID);
-//    assoreq_p.AssReqBd.ssid = *SSID;
+    // assoreq_p.AssReqBd.ssid = *SSID;
     strcpy(assoreq_p.AssReqBd.ssid,SSID,strlen(SSID));
 //    memcpy(assoreq_p.AssReqBd.ssid,*SSID,strlen(SSID));
     printf("%s\n",assoreq_p.AssReqBd.ssid);
