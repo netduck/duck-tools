@@ -93,8 +93,21 @@ void Mac_(const char *arr, u_char mac_addr[6])
     }
 }
 
-void set_auth_p(){
-
+void set_auth_p(Authentication *auth_p){
+    auth_p->
+    auth_p->rad.version = 0x00;
+    auth_p->rad.pad = 0x00;
+    auth_p->rad.len = 0x0008;
+    auth_p->rad.present = 0x00;
+    auth_p->Dot11Bd.FcF = 0x00B0;
+    auth_p->Dot11Bd.Dur = 0x0000;
+    Mac_(AP_MAC, auth_p->Dot11Bd.APMac);
+    Mac_(STA_MAC, auth_p->Dot11Bd.STAMac);
+    Mac_(AP_MAC, auth_p->Dot11Bd.BSSID);
+    auth_p->Dot11Bd.FSnumber = 0x0000;
+    auth_p->AuthBd.auth_Algo = 0x0000;
+    auth_p->AuthBd.auth_seq = 0x0001;
+    auth_p->AuthBd.status_code = 0x0000;
 }
 
 int main(int argc, char *argv[])
@@ -130,22 +143,21 @@ int main(int argc, char *argv[])
 
     //auth 패킷 초기화
     struct Authentication auth_p;
-    printf("%p",&auth_p);
-    // set_auth_p(*auth_p);
+    set_auth_p(&auth_p);
 
-    auth_p.rad.version = 0x00;
-    auth_p.rad.pad = 0x00;
-    auth_p.rad.len = 0x0008;
-    auth_p.rad.present = 0x00;
-    auth_p.Dot11Bd.FcF = 0x00B0;
-    auth_p.Dot11Bd.Dur = 0x0000;
-    Mac_(AP_MAC, auth_p.Dot11Bd.APMac);
-    Mac_(STA_MAC, auth_p.Dot11Bd.STAMac);
-    Mac_(AP_MAC, auth_p.Dot11Bd.BSSID);
-    auth_p.Dot11Bd.FSnumber = 0x0000;
-    auth_p.AuthBd.auth_Algo = 0x0000;
-    auth_p.AuthBd.auth_seq = 0x0001;
-    auth_p.AuthBd.status_code = 0x0000;
+    // auth_p.rad.version = 0x00;
+    // auth_p.rad.pad = 0x00;
+    // auth_p.rad.len = 0x0008;
+    // auth_p.rad.present = 0x00;
+    // auth_p.Dot11Bd.FcF = 0x00B0;
+    // auth_p.Dot11Bd.Dur = 0x0000;
+    // Mac_(AP_MAC, auth_p.Dot11Bd.APMac);
+    // Mac_(STA_MAC, auth_p.Dot11Bd.STAMac);
+    // Mac_(AP_MAC, auth_p.Dot11Bd.BSSID);
+    // auth_p.Dot11Bd.FSnumber = 0x0000;
+    // auth_p.AuthBd.auth_Algo = 0x0000;
+    // auth_p.AuthBd.auth_seq = 0x0001;
+    // auth_p.AuthBd.status_code = 0x0000;
 
     //association 패킷 초기화
     struct AssociationReq assoreq_p;
