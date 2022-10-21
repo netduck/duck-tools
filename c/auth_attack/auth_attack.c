@@ -13,6 +13,13 @@ struct Radio
     uint32_t present; /* fields present */
 };
 
+void radio_init(struct Radio* r){
+    rad->version = 0x00;
+    rad->pad = 0x00;
+    rad->len = 0x0008;
+    rad->present = 0x00;
+}
+
 struct Dot11Bd
 {
     uint16_t FcF;
@@ -94,10 +101,7 @@ void Mac_(const char *arr, u_char mac_addr[6])
 }
 
 void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned char *STA_MAC){
-    auth_p->rad.version = 0x00;
-    auth_p->rad.pad = 0x00;
-    auth_p->rad.len = 0x0008;
-    auth_p->rad.present = 0x00;
+    radio_init(&(auth_p->rad))
     auth_p->Dot11Bd.FcF = 0x00B0;
     auth_p->Dot11Bd.Dur = 0x0000;
     Mac_(AP_MAC, auth_p->Dot11Bd.APMac);
@@ -140,8 +144,6 @@ int main(int argc, char *argv[])
         }
     }
     
-//    if (!parse(&param, argc, argv))
-//        return -1;
     for(int i = 0; i < argc; i++){
         printf("%s\n\n",argv[i]);
     }
