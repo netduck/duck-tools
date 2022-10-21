@@ -110,21 +110,21 @@ void set_auth_p(struct Authentication *auth_p,unsigned char *AP_MAC,unsigned cha
 }
 
 void set_assoreq_p(struct AssociationReq *assoreq_p,unsigned char *AP_MAC,unsigned char *STA_MAC,unsigned char *SSID){
-    assoreq_p.rad.version = 0x00;
-    assoreq_p.rad.pad = 0x00;
-    assoreq_p.rad.len = 0x0008;
-    assoreq_p.rad.present = 0x00;
-    assoreq_p.Dot11Bd.FcF = 0x0000;
-    assoreq_p.Dot11Bd.Dur = 0x0000;
-    Mac_(AP_MAC, assoreq_p.Dot11Bd.APMac);
-    Mac_(STA_MAC, assoreq_p.Dot11Bd.STAMac);
-    Mac_(AP_MAC, assoreq_p.Dot11Bd.BSSID);
-    assoreq_p.Dot11Bd.FSnumber = 0x0000;
-    assoreq_p.AssReqBd.capabil_info = 0x0000;
-    assoreq_p.AssReqBd.status_code = 0x00C8;
-    assoreq_p.AssReqBd.tag_number = 0x00;
-    assoreq_p.AssReqBd.tag_len = strlen(SSID);
-    strcpy(assoreq_p.AssReqBd.ssid,SSID);
+    assoreq_p->rad.version = 0x00;
+    assoreq_p->rad.pad = 0x00;
+    assoreq_p->rad.len = 0x0008;
+    assoreq_p->rad.present = 0x00;
+    assoreq_p->Dot11Bd.FcF = 0x0000;
+    assoreq_p->Dot11Bd.Dur = 0x0000;
+    Mac_(AP_MAC, assoreq_p->Dot11Bd.APMac);
+    Mac_(STA_MAC, assoreq_p->Dot11Bd.STAMac);
+    Mac_(AP_MAC, assoreq_p->Dot11Bd.BSSID);
+    assoreq_p->Dot11Bd.FSnumber = 0x0000;
+    assoreq_p->AssReqBd.capabil_info = 0x0000;
+    assoreq_p->AssReqBd.status_code = 0x00C8;
+    assoreq_p->AssReqBd.tag_number = 0x00;
+    assoreq_p->AssReqBd.tag_len = strlen(SSID);
+    strcpy(assoreq_p->AssReqBd.ssid,SSID);
 }
 
 int main(int argc, char *argv[])
