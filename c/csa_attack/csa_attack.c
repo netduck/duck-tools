@@ -78,7 +78,7 @@ bool parse(Param *param, int argc, char *argv[])
 void Mac_(const char *arr, u_char mac_addr[6]);
 bool isBeacon(const u_char *packet);
 bool arrncmp(const char *arr1, const char *arr2, int len);
-void addCSA(u_char *packet, int len, int pivot); //배열 공간 생성
+void expArray(u_char *packet, int len, int pivot); //배열 공간 생성
 int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, const unsigned char *Input_STA_MAC, const unsigned char *Input_AP_Ch, Opt *opt);
 
 int main(int argc, char *argv[])
@@ -157,7 +157,7 @@ bool arrncmp(const char *arr1, const char *arr2, int len)
     return true;
 }
 
-void addCSA(u_char *arr, int len, int pivot)
+void expArray(u_char *arr, int len, int pivot)
 { // len : 배열의 길이, pivot : 어디까지 뒤로 밀어낼지
     // realloc으로 미리 공간 늘려주고 보내줘야함
     for (int i = len - 1 - 5; i >= pivot; i--)
@@ -257,9 +257,10 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                     continue;
                 }
                 memcpy(send_packet, packet, header->caplen);
-
-                *(send_packet + 16) = 0x00; // fcs
-
+                if (isFcS)
+                {
+                    *(send_packet + 16) = 0x00; // fcs
+                }
                 Radio *rad;
                 rad = (Radio *)send_packet;
                 u_int not_tag_len = (rad->hdr_len) + 24 + 12;
@@ -280,7 +281,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                         {
                             send_packet = tmp;
                         }
-                        addCSA(send_packet, total_len, not_tag_len + i - 1); // csa를 넣을 공간 생성
+                        expArray(send_packet, total_len, not_tag_len + i - 1); // csa를 넣을 공간 생성
                         *(send_packet + not_tag_len + i) = 0x25;
                         *(send_packet + not_tag_len + i + 1) = 0x3;
                         *(send_packet + not_tag_len + i + 2) = 0x1;
@@ -305,10 +306,6 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                     *(send_packet + header->caplen + 2) = 0x1;
                     *(send_packet + header->caplen + 3) = ChangeCh;
                     *(send_packet + header->caplen + 4) = 0x1;
-                }
-                if (isFcS)
-                {
-                    // total_len -= 4;
                 }
 
                 for (int i = 0; i < 4; i++)
