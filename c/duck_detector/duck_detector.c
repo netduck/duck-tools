@@ -17,7 +17,7 @@ typedef struct Dot11
 {
     u_char Version : 2;
     u_char Type : 2;
-    u_char Subtype :4;
+    u_char Subtype : 4;
     u_char Flags;
     u_short Dur;
     u_char STAMac[6];
@@ -54,7 +54,7 @@ void checkPacket(const char *Interface)
             printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
             break;
         }
-        checkCSA(packet,header->caplen);
+        checkCSA(packet, header->caplen);
         checkDeauth(packet);
     }
 }
@@ -63,11 +63,12 @@ bool checkDeauth(const u_char *packet)
 {
     Radio *rad;
     rad = (Radio *)packet;
-    packet += rad->hdr_len; //radio tap jump
+    packet += rad->hdr_len; // radio tap jump
 
     Dot *dot;
     dot = (Dot *)packet;
-    if(dot->Type == 0x0 && dot->Subtype == 0x1100){
+    if (dot->Type == 0x0 && dot->Subtype == 0x1100)
+    {
         return true;
     }
 }
@@ -76,17 +77,19 @@ bool checkCSA(const u_char *packet, const u_int32_t packetlen)
     Radio *rad;
     rad = (Radio *)packet;
     u_int32_t taglen = packetlen - rad->hdr_len - 24 - 12;
-    
+
     packet += rad->hdr_len;
     packet += 24 + 12;
 
-    for(int i=0;i<taglen;){
+    for (int i = 0; i < taglen;)
+    {
         Tag *tag;
         tag = (Tag *)packet;
-        if(tag->tag_number==0x25){
+        if (tag->tag_number == 0x25)
+        {
             return true;
         }
-        i+=tag->tag_length+2;
+        i += tag->tag_length + 2;
     }
 }
 void mallocElement();
@@ -98,6 +101,58 @@ void usage()
     printf("sample: duck_detector wlan0\n");
 }
 
-int main(){
-    
+typedef struct
+{
+    char *dev_;
+} Param;
+
+Param param = {
+    .dev_ = NULL};
+
+typedef struct attackList
+{
+    u_char *mac;
+    u_char *attackType;
+    uint8_t pwr;
+} attackList;
+
+bool parse(Param *param, int argc, char *argv[])
+{
+    if (argc != 2)
+    {
+        usage();
+        return false;
+    }
+    param->dev_ = argv[1];
+    return true;
+}
+
+void showInit()
+{
+    system("clear");
+    printf("              Mac    Atk  PWR\n\n");
+}
+
+void showList(int *listCnt, struct attackList *list)
+{
+    showInit();
+    for (int i = 0; i < (*listCnt); i++)
+    {
+        printf("%s  %5s  -%d\n", (list + i)->mac, (list + i)->attackType, (list + i)->pwr);
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    if (!parse(&param, argc, argv))
+        return -1;
+    struct attackList atkList[5];
+    int cnt = 2;
+    atkList[0].mac = "aa:bb:cc:dd:ee:ff";
+    atkList[0].attackType = "CSA";
+    atkList[0].pwr = 10;
+    atkList[1].mac = "11:22:33:44:55:66";
+    atkList[1].attackType = "DAuth";
+    atkList[1].pwr = 20;
+    showList(&cnt, atkList);
 }
