@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
     Opt opt;
 
     optionParse(argc, argv, &opt);
-
     if (!parse(&param, argc, argv))
         return -1;
 
@@ -216,7 +215,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
         // Broadcast
         if (isBeacon(packet))
         {
-
+            /*----------이거 함수화----------*/
             unsigned char ChangeCh;
             if (Op_c)
             {
@@ -236,6 +235,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                     }
                 }
             }
+            /*----------이거 함수화----------*/
             if ((rad->flags >> 4) == 1)
             {
                 isFcS = true;
@@ -257,10 +257,12 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                     continue;
                 }
                 memcpy(send_packet, packet, header->caplen);
+                /*----------이거 함수화----------*/
                 if (isFcS)
                 {
                     *(send_packet + 16) = 0x00; // fcs
                 }
+                /*----------이거 함수화----------*/
                 Radio *rad;
                 rad = (Radio *)send_packet;
                 u_int not_tag_len = (rad->hdr_len) + 24 + 12;
@@ -269,7 +271,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                 tag *tagged;
                 bool csa_inject = false;
                 int error;
-
+                /*----------이거 함수화----------*/
                 for (int i = 0; i < tag_len; i)
                 {
                     tagged = (tag *)(send_packet + not_tag_len + i);
@@ -282,6 +284,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                             send_packet = tmp;
                         }
                         expArray(send_packet, total_len, not_tag_len + i - 1); // csa를 넣을 공간 생성
+                        /*----------이거 함수화----------*/
                         *(send_packet + not_tag_len + i) = 0x25;
                         *(send_packet + not_tag_len + i + 1) = 0x3;
                         *(send_packet + not_tag_len + i + 2) = 0x1;
@@ -300,7 +303,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
                     {
                         send_packet = tmp;
                     }
-
+                    /*----------이거 함수화----------*/
                     *(send_packet + header->caplen) = 0x25;
                     *(send_packet + header->caplen + 1) = 0x3;
                     *(send_packet + header->caplen + 2) = 0x1;
