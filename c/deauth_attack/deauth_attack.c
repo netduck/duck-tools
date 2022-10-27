@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
     //패킷 전송
     while (1)
     {
+        printf("packet send!!!\n");
         if (pcap_sendpacket(pcap, (char *)&packet, sizeof(packet) - 2) != 0)
         {
             fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
