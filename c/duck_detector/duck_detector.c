@@ -5,6 +5,16 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+
+
+typedef struct
+{
+    char *dev_;
+} Param;
+
+Param param = {
+    .dev_ = NULL};
+
 typedef struct radiotap
 {
     u_char hdr_rev;
@@ -30,34 +40,6 @@ typedef struct tagged_parameters
     u_char tag_number;
     u_char tag_length;
 } Tag;
-
-void checkPacket(const char *Interface)
-{
-
-    char errbuf[PCAP_ERRBUF_SIZE];
-    pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
-    if (pcap == NULL)
-    {
-        fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
-        return -1;
-    }
-
-    while (true)
-    {
-        struct pcap_pkthdr *header;
-        const u_char *packet;
-        int res = pcap_next_ex(pcap, &header, &packet);
-        if (res == 0)
-            continue;
-        if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK)
-        {
-            printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
-            break;
-        }
-        checkCSA(packet, header->caplen);
-        checkDeauth(packet);
-    }
-}
 
 bool checkDeauth(const u_char *packet)
 {
@@ -92,6 +74,34 @@ bool checkCSA(const u_char *packet, const u_int32_t packetlen)
         i += tag->tag_length + 2;
     }
 }
+void checkPacket(const char *Interface)
+{
+
+    char errbuf[PCAP_ERRBUF_SIZE];
+    pcap_t *pcap = pcap_open_live(Interface, BUFSIZ, 1, 1000, errbuf);
+    if (pcap == NULL)
+    {
+        fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
+        return;
+    }
+
+    while (true)
+    {
+        struct pcap_pkthdr *header;
+        const u_char *packet;
+        int res = pcap_next_ex(pcap, &header, &packet);
+        if (res == 0)
+            continue;
+        if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK)
+        {
+            printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
+            break;
+        }
+        checkCSA(packet, header->caplen);
+        checkDeauth(packet);
+    }
+}
+
 void mallocElement();
 void updateList();
 
@@ -100,15 +110,6 @@ void usage()
     printf("syntax: duck_detector <interface>\n");
     printf("sample: duck_detector wlan0\n");
 }
-
-typedef struct
-{
-    char *dev_;
-} Param;
-
-Param param = {
-    .dev_ = NULL};
-
 typedef struct attackList
 {
     u_char *mac;
@@ -155,4 +156,5 @@ int main(int argc, char *argv[])
     atkList[1].attackType = "DAuth";
     atkList[1].pwr = 20;
     showList(&cnt, atkList);
+    checkPacket(argv[1]);
 }
