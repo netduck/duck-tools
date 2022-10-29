@@ -41,6 +41,8 @@ int channel_hopping(
 		exit(-1);
 	}
 
+	iw_sockets_close(skfd);
+
 	return 0;
 }
 
