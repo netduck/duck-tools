@@ -24,7 +24,6 @@ int channel_hopping(
 		exit(-1);
 	}
 	
-	skfd = iw_sockets_open();
 	if((skfd = iw_sockets_open()) < 0)
 	{
 		fprintf(stderr, "Channel Hopper : iw_sockets_open Error\n");
