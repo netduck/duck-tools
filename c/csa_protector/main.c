@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     while (1)
     {
         int ChangeCh = Wireless_Channel[i];
-        if (i < 58)
+        if (i < 57)
         {
             i++;
         }
@@ -40,17 +40,22 @@ int main(int argc, char *argv[])
         {
             i = 0;
         }
+        ChangeCh = 2;
         const u_char *packet;
         struct pcap_pkthdr *header;
         int csaCh;
         channel_hopping(Interface, ChangeCh);
+        // printf("ch:%d\n",ChangeCh);
         CapturePacket(pcap, &packet, &header);
         // PtData(packet,header->caplen);
-        if (isCSA(packet, header->caplen,csaCh))
+        if (isCSA(packet, header->caplen, &csaCh))
         {
             // printf("Be CAP : %d\n",header->caplen);
             // PtData(packet,header->caplen); //FcS 캡쳐됨 4바이트 제거 바람
-            sendCSA(pcap,packet,ChangeCh,Interface,csaCh,header->caplen);
+            if (csaCh != ChangeCh)
+            {
+                sendCSA(pcap, packet, ChangeCh, Interface, csaCh, header->caplen);
+            }
             // exit(1);
         }
         else
