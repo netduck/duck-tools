@@ -20,11 +20,6 @@ INFO_STR = "\x1b[33m-\x1b[0m"
 ##################################################################################################
 #											usage
 # 기존의 CSA Attack에서 동일한 SSID에 여러개의 맥주소가 엮여있을 경우 다수의 CSA Attack을 날리기 위해서 개발
-# aggressive를 True로 놓고 쓰는게 좋음
-# broadcast(beacon frame) CSA Attack
-# python3 csa_attack.py -i mon0 -v KITRI_DEV5 -d broadcast --aggressive True
-# unicast(Probe response frame) CSA Attack
-# python3 csa_attack.py -i mon0 -v KITRI_DEV5 -d unicast -s AA:BB:CC:DD:EE:FF --aggressive True
 ##################################################################################################
 
 def csa_attack(parser):
@@ -72,7 +67,6 @@ def make_beacon_csa(parser, elt, dot11):
 		information_element = Dot11Elt(ID=elt.ID, len=len(elt.info), info=elt.info)
 		frame = frame/information_element
 		elt = elt.payload.getlayer(Dot11Elt)
-	print(cur_channel)
 	csa_packets.append((cur_channel, frame))
 
 def send_beacon_csa(parser):
