@@ -27,7 +27,7 @@ extern bool Op_x;
 extern const char *optstring;
 typedef struct Option
 {
-    unsigned int Op_c_ch;   // Change Channel
+    unsigned int Op_f_ch;   // Fixed Channel
     unsigned int Op_t_time; // Time
     char Op_d_stamac[6];    // ATK Type <STA mac> unicast
     unsigned char *Interface;

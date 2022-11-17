@@ -37,7 +37,7 @@ int optionParse(int argc, char *argv[], Opt *opt) //사용시 argv 뒤집힘 주
             break;
         case 'c':
             is_Op = true;
-            opt->Op_c_ch = atoi(optarg);
+            opt->Op_f_ch = atoi(optarg);
             Op_c = true;
             break;
         case 't':
