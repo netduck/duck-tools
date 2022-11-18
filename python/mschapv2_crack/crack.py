@@ -49,7 +49,7 @@ class Cracker:
 
                 R = cipher1.encrypt(self.challenge) + cipher2.encrypt(self.challenge) + cipher3.encrypt(self.challenge)
                 if R == self.response:
-                    print(f"[+] Username: {binascii.hexlif(self.username)}")
+                    print(f"[+] Username: {self.username}")
                     print(f"[+] PW      : {pw}")
                     exit(1)
                 
