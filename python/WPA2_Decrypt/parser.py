@@ -17,14 +17,14 @@ class PARSER:
     def get_info(self):
         for i in range(0, len(self.packets)):
             pkt = self.packets[i]
+            # 802.11w, 802.11i를 구분하기 위함
+            if pkt.haslayer(Dot11AssoReq):
+                if pkt[Dot11AssoReq][Dot11EltRSN][AKMSuite].fields['suite'] == 6:
+                    self.enc_type = 3
+                elif pkt[Dot11AssoReq][Dot11EltRSN][AKMSuite].fields['suite'] == 2:
+                    self.enc_type = 2
             # EAPOL패킷일 경우 필요한 정보들을 추출한다.
             if pkt.haslayer(EAPOL):
-                # 802.11w, 802.11i를 구분하기 위함
-                if self.enc_type == None and int(binascii.b2a_hex(pkt.load[2:3]),16) & 3 == 2:
-                    self.enc_type = 2
-                elif self.enc_type == None and int(binascii.b2a_hex(pkt.load[2:3]),16) & 3 == 3:
-                    self.enc_type = 3
-                    
                 # Check DS Status
                 #print(int(binascii.b2a_hex(pkt[EAPOL].load[1:2]),16))
                 if pkt[Dot11FCS].FCfield.value & 0x2 == 0x2:
