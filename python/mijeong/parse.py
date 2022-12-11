@@ -16,7 +16,7 @@ class PARSER:
         self.satisfied= [0,0,0,0]
     
     def all_satisfied(self):
-        if self.satisfied[0] == 1 and self.satisfied[1] ==1 and self.satisfied[2] == 1 and self.satisfied[3] == 1:
+        if self.Anonce != None and self.Snonce != None and self.sta_mac != None and self.ap_mac != None:
             return True
         return False
     
@@ -26,26 +26,31 @@ class PARSER:
         dot11 = pkt.getlayer(Dot11)
         # 802.11w, 802.11i를 구분하기 위함
         if pkt.haslayer(Dot11AssoReq):
+            self.AP_MAC = pkt.addr1.replace(':', '')
+            self.STA_MAC = pkt.addr2.replace(':', '')
+            # 802.11w
             if pkt[Dot11AssoReq][Dot11EltRSN][AKMSuite].fields['suite'] == 6:
                 self.enc_type = 3
+            # 802.11i
             elif pkt[Dot11AssoReq][Dot11EltRSN][AKMSuite].fields['suite'] == 2:
                 self.enc_type = 2
         
         if pkt.haslayer(EAPOL):
             if (dot11.addr1 == self.ap_mac and dot11.addr2 == self.sta_mac) or (dot11.addr1==self.sta_mac and dot11.addr2 == self.ap_mac):
-                
+                self.AP_MAC = pkt.addr2.replace(':', '')
+                self.STA_MAC = pkt.addr1.replace(':', '')
                 # Check DS Status
                 #print(int(binascii.b2a_hex(pkt[EAPOL].load[1:2]),16))
-                if pkt[Dot11FCS].FCfield.value & 0x2 == 0x2:
+                if pkt[Dot11].FCfield.value & 0x2 == 0x2:
                     # Check Secure bit
                     if int(binascii.b2a_hex(pkt[EAPOL].load[1:2]),16) & 0x02 == 0:
                         # EAPOL1
-                        self.AP_MAC = pkt.addr2.replace(':', '')
-                        self.STA_MAC = pkt.addr1.replace(':', '')
+
                         self.Anonce = binascii.b2a_hex(pkt.load[13:45])
                         self.satisfied[0] = 1
                     else:
                         # EAPOL3
+                        self.Anonce = binascii.b2a_hex(pkt.load[13:45])
                         mic = binascii.b2a_hex(pkt.load[77:93])
                         self.mics.append(mic)
                         data = binascii.hexlify(bytes(pkt[EAPOL]))
@@ -54,6 +59,8 @@ class PARSER:
                         self.data.append(data)
                         self.satisfied[2] = 1
                 else:
+                    self.AP_MAC = pkt.addr1.replace(':', '')
+                    self.STA_MAC = pkt.addr2.replace(':', '')
                     if int(binascii.b2a_hex(pkt[EAPOL].load[1:2]),16) & 0x02 == 0:
                         # EAPOL2
                         self.Snonce = binascii.b2a_hex(pkt.load[13:45])
