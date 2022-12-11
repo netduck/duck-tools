@@ -3,7 +3,7 @@ import binascii
 
 class PARSER:
     def __init__(self):
-        self.packets = rdpcap('./pcap/WPA2_PMF.pcapng')
+        self.packets = rdpcap('./pcap/sq_query.pcap')
         #self.packets = rdpcap('./pcap/WPA2_NO_PMF.pcapng')
         self.Anonce = None
         self.Snonce = None
@@ -17,6 +17,7 @@ class PARSER:
     def get_info(self):
         for i in range(0, len(self.packets)):
             pkt = self.packets[i]
+
             # 802.11w, 802.11i를 구분하기 위함
             if pkt.haslayer(Dot11AssoReq):
                 if pkt[Dot11AssoReq][Dot11EltRSN][AKMSuite].fields['suite'] == 6:
@@ -27,7 +28,7 @@ class PARSER:
             if pkt.haslayer(EAPOL):
                 # Check DS Status
                 #print(int(binascii.b2a_hex(pkt[EAPOL].load[1:2]),16))
-                if pkt[Dot11FCS].FCfield.value & 0x2 == 0x2:
+                if pkt[Dot11].FCfield.value & 0x2 == 0x2:
                     # Check Secure bit
                     if int(binascii.b2a_hex(pkt[EAPOL].load[1:2]),16) & 0x02 == 0:
                         # EAPOL1
